@@ -1,4 +1,5 @@
 using EmailPlatform.Infrastructure;
+using EmailPlatform.Infrastructure.BackgroundJobs;
 using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +20,16 @@ var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    app.UseHangfireDashboard("/hangfire");
+    app.UseHangfireDashboard(
+    "/hangfire",
+    new DashboardOptions
+    {
+        Authorization = new[]
+        {
+            new AllowAllHangfireAuthorizationFilter()
+        }
+    });
+
 // }
 
 app.UseHttpsRedirection();
