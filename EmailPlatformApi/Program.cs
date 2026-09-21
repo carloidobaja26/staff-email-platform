@@ -13,13 +13,14 @@ builder.Services.AddInfrastructure(
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
+// partial turn on for testing in railway
+// if (app.Environment.IsDevelopment())
+// {
     app.UseSwagger();
     app.UseSwaggerUI();
 
     app.UseHangfireDashboard("/hangfire");
-}
+// }
 
 app.UseHttpsRedirection();
 
