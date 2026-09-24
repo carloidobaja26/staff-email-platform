@@ -37,28 +37,10 @@ public async Task<EmailSendResult> SendAsync(
     {
         var mimeMessage = new MimeMessage();
 
-        mimeMessage.From.Add(
-            new MailboxAddress(
-                _options.FromName,
-                _options.FromAddress));
-
-        mimeMessage.To.Add(
-            MailboxAddress.Parse(message.To));
-
-        mimeMessage.Subject = message.Subject;
-
-        mimeMessage.MessageId =
-            MimeUtils.GenerateMessageId();
-
-        if (!string.IsNullOrWhiteSpace(message.TransactionalTag))
-        {
-            mimeMessage.Headers.Add(
-                "X-Transactional-Tag",
-                message.TransactionalTag);
-        }
-
         var fromAddress =
-            message.From ?? _options.FromAddress;
+            string.IsNullOrWhiteSpace(message.From)
+                ? _options.FromAddress
+                : message.From;
 
         mimeMessage.From.Add(
             new MailboxAddress(
@@ -69,6 +51,16 @@ public async Task<EmailSendResult> SendAsync(
             MailboxAddress.Parse(message.To));
 
         mimeMessage.Subject = message.Subject;
+
+        mimeMessage.MessageId =
+            MimeUtils.GenerateMessageId();
+
+        // if (!string.IsNullOrWhiteSpace(message.TransactionalTag))
+        // {
+        //     mimeMessage.Headers.Add(
+        //         "X-Transactional-Tag",
+        //         message.TransactionalTag);
+        // }
 
         var bodyBuilder = new BodyBuilder
         {
@@ -130,7 +122,7 @@ public async Task<EmailSendResult> SendAsync(
         return new EmailSendResult
         {
             Success = false,
-            IsTransient = true,
+            IsTransient = IsTransient(ex.StatusCode),
             ErrorCode = ex.StatusCode.ToString(),
             ErrorMessage = ex.Message
         };
@@ -164,6 +156,7 @@ public async Task<EmailSendResult> SendAsync(
         };
     }
 }
+ 
     private static bool IsTransient(
         SmtpStatusCode statusCode)
     {
