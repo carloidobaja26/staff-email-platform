@@ -17,6 +17,9 @@ public class EmailPlatformDbContext : DbContext
 
     public DbSet<EmailDelivery> EmailDeliveries => Set<EmailDelivery>();
 
+    public DbSet<EmailWebhookEvent> EmailWebhookEvents
+        => Set<EmailWebhookEvent>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(

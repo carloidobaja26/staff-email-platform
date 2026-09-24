@@ -4,6 +4,7 @@ public enum EmailDeliveryStatus
 {
     Accepted = 1,
     Delivered = 2,
-    Bounced = 3,
-    Failed = 4
+    Deferred = 3,
+    Bounced = 4,
+    Failed = 5
 }

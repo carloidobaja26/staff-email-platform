@@ -4,7 +4,8 @@ public enum EmailJobStatus
 {
     Pending = 1,
     Processing = 2,
-    Sent = 3,
-    Failed = 4,
-    Cancelled = 5
+    Accepted = 3,
+    Delivered = 4,
+    Failed = 5,
+    Cancelled = 6
 }

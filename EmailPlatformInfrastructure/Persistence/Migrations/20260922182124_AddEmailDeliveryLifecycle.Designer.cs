@@ -3,6 +3,7 @@ using System;
 using EmailPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EmailPlatformInfrastructure.Persistence.Migrations
 {
     [DbContext(typeof(EmailPlatformDbContext))]
-    partial class EmailPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260922182124_AddEmailDeliveryLifecycle")]
+    partial class AddEmailDeliveryLifecycle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,38 +194,6 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                     b.HasIndex("Status", "Priority", "ScheduledAt");
 
                     b.ToTable("email_jobs", (string)null);
-                });
-
-            modelBuilder.Entity("EmailPlatform.Domain.Entities.EmailWebhookEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("EventId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Provider")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTimeOffset>("ReceivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Provider", "EventId")
-                        .IsUnique();
-
-                    b.ToTable("email_webhook_events", (string)null);
                 });
 
             modelBuilder.Entity("EmailPlatform.Domain.Entities.EmailDelivery", b =>

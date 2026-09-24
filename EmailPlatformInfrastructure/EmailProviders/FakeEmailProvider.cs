@@ -20,16 +20,21 @@ public class FakeEmailProvider : IEmailProvider
         EmailMessage message,
         CancellationToken cancellationToken = default)
     {
+        var providerMessageId =
+            $"fake-{Guid.NewGuid():N}";
+
         _logger.LogInformation(
-            "FAKE EMAIL SENT. To: {To}, Subject: {Subject}",
+            "FAKE EMAIL ACCEPTED. To: {To}, Subject: {Subject}, ProviderMessageId: {ProviderMessageId}",
             message.To,
-            message.Subject);
+            message.Subject,
+            providerMessageId);
 
         return Task.FromResult(
             new EmailSendResult
             {
                 Success = true,
-                ProviderMessageId = $"fake-{Guid.NewGuid():N}"
+                IsAccepted = true,
+                ProviderMessageId = providerMessageId
             });
     }
 }

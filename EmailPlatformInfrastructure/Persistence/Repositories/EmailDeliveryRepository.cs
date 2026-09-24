@@ -4,42 +4,46 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmailPlatform.Infrastructure.Persistence.Repositories;
 
-public class EmailJobRepository : IEmailJobRepository
+public class EmailDeliveryRepository : IEmailDeliveryRepository
 {
     private readonly EmailPlatformDbContext _context;
 
-    public EmailJobRepository(
+    public EmailDeliveryRepository(
         EmailPlatformDbContext context)
     {
         _context = context;
     }
 
-    public async Task<EmailJob?> GetByIdAsync(
-        Guid id,
+    public async Task<EmailDelivery?> GetByProviderMessageIdAsync(
+        string provider,
+        string providerMessageId,
         CancellationToken cancellationToken = default)
     {
-        return await _context.EmailJobs
+        return await _context.EmailDeliveries
+            .Include(x => x.EmailJob)
             .FirstOrDefaultAsync(
-                x => x.Id == id,
+                x =>
+                    x.Provider == provider &&
+                    x.ProviderMessageId == providerMessageId,
                 cancellationToken);
     }
 
-    public async Task AddAsync(
-        EmailJob emailJob,
+    public async Task UpdateAsync(
+        EmailDelivery delivery,
         CancellationToken cancellationToken = default)
     {
-        _context.EmailJobs.Add(emailJob);
+        _context.EmailDeliveries.Update(delivery);
 
         await _context.SaveChangesAsync(
             cancellationToken);
     }
 
-    public async Task UpdateAsync(
-        EmailJob emailJob,
+    public async Task AddAsync(
+        EmailDelivery delivery,
         CancellationToken cancellationToken = default)
     {
-        // EmailJob was loaded by this DbContext
-        // and is already tracked.
+        _context.EmailDeliveries.Add(delivery);
+
         await _context.SaveChangesAsync(
             cancellationToken);
     }

@@ -35,7 +35,11 @@ public class EmailDeliveryConfiguration
         builder.HasIndex(x => x.EmailJobId);
 
         builder.HasIndex(x => x.ProviderMessageId);
-
+        builder.HasIndex(x => new
+        {
+            x.Provider,
+            x.ProviderMessageId
+        });
         builder.HasOne(x => x.EmailJob)
             .WithMany(x => x.Deliveries)
             .HasForeignKey(x => x.EmailJobId)
