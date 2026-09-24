@@ -37,7 +37,25 @@ public async Task<EmailSendResult> SendAsync(
     {
         var mimeMessage = new MimeMessage();
 
-        mimeMessage.MessageId = MimeUtils.GenerateMessageId();
+        mimeMessage.From.Add(
+            new MailboxAddress(
+                _options.FromName,
+                _options.FromAddress));
+
+        mimeMessage.To.Add(
+            MailboxAddress.Parse(message.To));
+
+        mimeMessage.Subject = message.Subject;
+
+        mimeMessage.MessageId =
+            MimeUtils.GenerateMessageId();
+
+        if (!string.IsNullOrWhiteSpace(message.TransactionalTag))
+        {
+            mimeMessage.Headers.Add(
+                "X-Transactional-Tag",
+                message.TransactionalTag);
+        }
 
         var fromAddress =
             message.From ?? _options.FromAddress;

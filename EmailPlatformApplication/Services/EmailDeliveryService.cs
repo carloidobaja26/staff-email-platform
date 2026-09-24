@@ -30,7 +30,7 @@ public class EmailDeliveryService : IEmailDeliveryService
                 $"Delivery '{providerMessageId}' was not found.");
         }
 
-        delivery.Status = EmailDeliveryStatus.Delivered;
+        delivery.Status = EmailDeliveryStatus.Accepted;
         delivery.DeliveredAt = DateTimeOffset.UtcNow;
 
         delivery.EmailJob.Status =

@@ -1,84 +1,45 @@
 using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
-using EmailPlatform.Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace EmailPlatform.Application.Services;
 
 public class MailDeliveryWebhookService
     : IMailDeliveryWebhookService
 {
-    private readonly IEmailDeliveryService _emailDeliveryService;
-    private readonly IEmailWebhookEventRepository _webhookEventRepository;
+    private readonly ILogger<MailDeliveryWebhookService> _logger;
 
     public MailDeliveryWebhookService(
-        IEmailDeliveryService emailDeliveryService,
-        IEmailWebhookEventRepository webhookEventRepository)
+        ILogger<MailDeliveryWebhookService> logger)
     {
-        _emailDeliveryService = emailDeliveryService;
-        _webhookEventRepository = webhookEventRepository;
+        _logger = logger;
     }
 
-    public async Task ProcessAsync(
-            MailDeliveryWebhookRequest request,
-            CancellationToken cancellationToken = default)
+    public Task ProcessAsync(
+        MailDeliveryWebhookRequest request,
+        CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation(
+            """
+            MailDelivery webhook received.
+            Type: {Type}
+            Email: {Email}
+            Timestamp: {Timestamp}
+            Broadcast: {Broadcast}
+            FunnelMessage: {FunnelMessage}
+            Tag: {Tag}
+            BounceType: {BounceType}
+            Code: {Code}
+            """,
+            request.Type,
+            request.Email,
+            request.Timestamp,
+            request.Source?.Broadcast,
+            request.Source?.FunnelMessage,
+            request.Source?.Tag,
+            request.BounceType,
+            request.Code);
 
-        var alreadyProcessed =
-            await _webhookEventRepository.ExistsAsync(
-                "maildelivery",
-                request.EventId,
-                cancellationToken);
-
-        if (alreadyProcessed)
-        {
-            return;
-        }
-        switch (request.Event.ToLowerInvariant())
-        {
-            case "delivered":
-            case "delivery":
-                await _emailDeliveryService.MarkDeliveredAsync(
-                    "maildelivery",
-                    request.ProviderMessageId,
-                    cancellationToken);
-
-                break;
-
-            case "deferred":
-            case "defer":
-                await _emailDeliveryService.MarkDeferredAsync(
-                    "maildelivery",
-                    request.ProviderMessageId,
-                    request.ErrorCode,
-                    request.ErrorMessage,
-                    cancellationToken);
-
-                break;
-
-            case "bounced":
-            case "bounce":
-                await _emailDeliveryService.MarkBouncedAsync(
-                    "maildelivery",
-                    request.ProviderMessageId,
-                    request.ErrorCode,
-                    request.ErrorMessage,
-                    cancellationToken);
-
-                break;
-
-            default:
-                throw new InvalidOperationException(
-                    $"Unsupported MailDelivery event '{request.Event}'.");
-        }
-        await _webhookEventRepository.AddAsync(
-            new EmailWebhookEvent
-            {
-                Id = Guid.NewGuid(),
-                Provider = "maildelivery",
-                EventId = request.EventId,
-                EventType = request.Event,
-                ReceivedAt = DateTimeOffset.UtcNow
-            },
-            cancellationToken);
+        return Task.CompletedTask;
     }
 }

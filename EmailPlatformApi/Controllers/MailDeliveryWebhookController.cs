@@ -2,26 +2,26 @@ using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EmailPlatform.Api.Controllers;
+namespace EmailPlatformApi.Controllers;
 
 [ApiController]
 [Route("api/webhooks/maildelivery")]
 public class MailDeliveryWebhookController : ControllerBase
 {
-    private readonly IMailDeliveryWebhookService _service;
+    private readonly IMailDeliveryWebhookService _webhookService;
 
     public MailDeliveryWebhookController(
-        IMailDeliveryWebhookService service)
+        IMailDeliveryWebhookService webhookService)
     {
-        _service = service;
+        _webhookService = webhookService;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Handle(
+    public async Task<IActionResult> Receive(
         [FromBody] MailDeliveryWebhookRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.ProcessAsync(
+        await _webhookService.ProcessAsync(
             request,
             cancellationToken);
 
