@@ -15,4 +15,8 @@ public interface IEmailJobRepository
     Task UpdateAsync(
         EmailJob emailJob,
         CancellationToken cancellationToken = default);
+
+    Task<EmailJob?> GetByCorrelationTagAsync(
+        string correlationTag,
+        CancellationToken cancellationToken = default);
 }

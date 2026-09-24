@@ -41,6 +41,7 @@ public class EmailJob
     public string? ErrorMessage { get; set; }
 
     public string? IdempotencyKey { get; set; }
+    public string? CorrelationTag { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 

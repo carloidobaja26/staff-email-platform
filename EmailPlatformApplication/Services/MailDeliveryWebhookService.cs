@@ -8,14 +8,17 @@ public class MailDeliveryWebhookService
     : IMailDeliveryWebhookService
 {
     private readonly ILogger<MailDeliveryWebhookService> _logger;
+    private readonly IEmailJobRepository _iEmailJobRepository;
 
     public MailDeliveryWebhookService(
-        ILogger<MailDeliveryWebhookService> logger)
+        ILogger<MailDeliveryWebhookService> logger,
+        IEmailJobRepository iEmailJobRepository)
     {
         _logger = logger;
+        _iEmailJobRepository = iEmailJobRepository;
     }
 
-    public Task ProcessAsync(
+    public async Task ProcessAsync(
         MailDeliveryWebhookRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -39,7 +42,30 @@ public class MailDeliveryWebhookService
             request.Source?.Tag,
             request.BounceType,
             request.Code);
+        var tag = request.Source?.Tag;
 
-        return Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            _logger.LogWarning(
+                "MailDelivery webhook has no correlation tag.");
+
+        }
+
+        var emailJob =
+             await _iEmailJobRepository.GetByCorrelationTagAsync(
+                tag,
+                cancellationToken);
+
+        if (emailJob is null)
+        {
+            _logger.LogWarning(
+                "No EmailJob found for correlation tag {CorrelationTag}",
+                tag);
+            return;
+        }
+        _logger.LogWarning(
+            "MailDelivery webhook has no correlation tag.");
+        _logger.LogInformation("EmailJobId: ", emailJob.Id);
+        return;
     }
 }

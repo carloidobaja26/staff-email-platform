@@ -59,7 +59,14 @@ public class EmailJobConfiguration
         builder.HasIndex(x => x.Status);
 
         builder.HasIndex(x => x.ScheduledAt);
+        builder.Property(x => x.CorrelationTag)
+            .IsRequired(false)
+            .HasMaxLength(16);
 
+        // Enforces uniqueness ONLY when CorrelationTag IS NOT NULL
+        builder.HasIndex(x => x.CorrelationTag)
+            .IsUnique()
+            .HasFilter("\"CorrelationTag\" IS NOT NULL");
         builder.HasIndex(x => new
         {
             x.Status,

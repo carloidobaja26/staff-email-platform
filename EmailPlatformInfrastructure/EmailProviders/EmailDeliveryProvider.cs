@@ -59,14 +59,22 @@ public class EmailDeliveryProvider : IEmailProvider
              * Example:
              * <emailjob-860202b495a5488da39154a389cb418c@mail.staffconnect.app>
              */
-            mimeMessage.MessageId =
-                $"<emailjob-{message.EmailJobId:N}@mail.staffconnect.app>";
 
-            _logger.LogInformation(
-                "Created MIME Message-ID. " +
-                "EmailJobId={EmailJobId}, MessageId={MessageId}",
-                message.EmailJobId,
-                mimeMessage.MessageId);
+            string tagValue = message.EmailJobId.ToString("N").ToLowerInvariant(); 
+
+            // Add the custom tag header
+            if (!string.IsNullOrWhiteSpace(message.TransactionalTag))
+            {
+                mimeMessage.Headers.Add(
+                    "X-Transactional-Tag",
+                    message.TransactionalTag);
+
+                _logger.LogInformation(
+                    "EmailDelivery transactional tag set. " +
+                    "EmailJobId={EmailJobId}, Tag={Tag}",
+                    message.EmailJobId,
+                    message.TransactionalTag);
+            }
 
             /*
              * Do NOT send X-Transactional-Tag yet.

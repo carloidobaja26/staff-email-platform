@@ -98,7 +98,8 @@ public class EmailJobProcessor : IEmailJobProcessor
             Subject = emailJob.Subject,
             HtmlBody = $"<p>Template: {emailJob.Template}</p>",
             TextBody = $"Template: {emailJob.Template}",
-            TransactionalTag = $"email-job:{emailJob.Id}"
+            TransactionalTag = emailJob.CorrelationTag,
+            EmailJobId = emailJobId
         };
 
         // ---------------------------------------------------------
@@ -216,4 +217,5 @@ public class EmailJobProcessor : IEmailJobProcessor
             "EmailJob {EmailJobId} completed successfully.",
             emailJob.Id);
     }
+
 }

@@ -22,18 +22,20 @@ public class EmailService : IEmailService
         QueueEmailRequest request,
         CancellationToken cancellationToken = default)
     {
+        var emailJobId = Guid.NewGuid();
         var emailJob = new EmailJob
         {
-            Id = Guid.NewGuid(),
+            Id = emailJobId,
 
             ApplicationId = request.ApplicationId,
 
             To = request.To,
             From = request.From,
             Subject = request.Subject,
-
             Template = request.Template,
             Payload = request.Payload,
+
+            CorrelationTag = GenerateCorrelationTag(emailJobId),
 
             Category = (EmailCategory)request.Category,
             Priority = (EmailPriority)request.Priority,
@@ -69,5 +71,23 @@ public class EmailService : IEmailService
             EmailPriority.Low => "bulk",
             _ => "routine"
         };
+    }
+
+    private static string GenerateCorrelationTag(Guid emailJobId)
+    {
+        const string alphabet =
+            "abcdefghijklmnopqrstuvwxyz0123456789";
+
+        var bytes = emailJobId.ToByteArray();
+
+        var chars = new char[13];
+
+        for (var i = 0; i < chars.Length; i++)
+        {
+            chars[i] =
+                alphabet[bytes[i % bytes.Length] % alphabet.Length];
+        }
+
+        return "job" + new string(chars);
     }
 }

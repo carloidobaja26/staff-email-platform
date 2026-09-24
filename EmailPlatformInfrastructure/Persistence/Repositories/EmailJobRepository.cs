@@ -43,4 +43,14 @@ public class EmailJobRepository : IEmailJobRepository
         await _context.SaveChangesAsync(
             cancellationToken);
     }
+
+    public async Task<EmailJob?> GetByCorrelationTagAsync(
+        string correlationTag,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.EmailJobs
+            .FirstOrDefaultAsync(
+                x => x.CorrelationTag == correlationTag,
+                cancellationToken);
+    }
 }
