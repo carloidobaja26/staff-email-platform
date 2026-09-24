@@ -42,19 +42,18 @@ public class MailDeliveryWebhookService
             request.Source?.Tag,
             request.BounceType,
             request.Code);
+
         var tag = request.Source?.Tag;
 
         if (string.IsNullOrWhiteSpace(tag))
         {
-            _logger.LogWarning(
-                "MailDelivery webhook has no correlation tag.");
-
+            _logger.LogWarning("MailDelivery webhook has no correlation tag.");
+            return; // Added missing return guard
         }
 
-        var emailJob =
-             await _iEmailJobRepository.GetByCorrelationTagAsync(
-                tag,
-                cancellationToken);
+        var emailJob = await _iEmailJobRepository.GetByCorrelationTagAsync(
+            tag,
+            cancellationToken);
 
         if (emailJob is null)
         {
@@ -63,9 +62,9 @@ public class MailDeliveryWebhookService
                 tag);
             return;
         }
-        _logger.LogWarning(
-            "MailDelivery webhook has no correlation tag.");
-        _logger.LogInformation("EmailJobId: ", emailJob.Id);
+
+        // Fixed structured logging syntax
+        _logger.LogInformation("EmailJobId: {EmailJobId}", emailJob.Id);
         return;
     }
 }
