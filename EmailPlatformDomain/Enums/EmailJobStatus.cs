@@ -7,5 +7,10 @@ public enum EmailJobStatus
     Accepted = 3,
     Delivered = 4,
     Failed = 5,
-    Cancelled = 6
+    Cancelled = 6,
+    Send = 7,
+    Click = 8,
+    Open = 9,
+    Bounce = 10,
+
 }

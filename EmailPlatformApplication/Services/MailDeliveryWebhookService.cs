@@ -1,5 +1,6 @@
 using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
+using EmailPlatform.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace EmailPlatform.Application.Services;
@@ -65,6 +66,81 @@ public class MailDeliveryWebhookService
 
         // Fixed structured logging syntax
         _logger.LogInformation("EmailJobId: {EmailJobId}", emailJob.Id);
+        if (request.Type.Equals(
+                "send",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            emailJob.Status = EmailJobStatus.Send;
+            emailJob.SentAt = request.Timestamp;
+            emailJob.ErrorCode = null;
+            emailJob.ErrorMessage = null;
+            emailJob.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await _iEmailJobRepository.UpdateAsync(
+                emailJob,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "EmailJob {EmailJobId} marked as Accepted.",
+                emailJob.Id);
+        }
+
+        if (request.Type.Equals(
+                "click",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            emailJob.Status = EmailJobStatus.Click;
+            emailJob.SentAt = request.Timestamp;
+            emailJob.ErrorCode = null;
+            emailJob.ErrorMessage = null;
+            emailJob.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await _iEmailJobRepository.UpdateAsync(
+                emailJob,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "EmailJob {EmailJobId} marked as Click.",
+                emailJob.Id);
+        }
+
+        if (request.Type.Equals(
+                "open",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            emailJob.Status = EmailJobStatus.Click;
+            emailJob.SentAt = request.Timestamp;
+            emailJob.ErrorCode = null;
+            emailJob.ErrorMessage = null;
+            emailJob.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await _iEmailJobRepository.UpdateAsync(
+                emailJob,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "EmailJob {EmailJobId} marked as Open.",
+                emailJob.Id);
+        }
+
+        if (request.Type.Equals(
+                "bounce",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            emailJob.Status = EmailJobStatus.Bounce;
+            emailJob.SentAt = request.Timestamp;
+            emailJob.ErrorCode = null;
+            emailJob.ErrorMessage = null;
+            emailJob.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await _iEmailJobRepository.UpdateAsync(
+                emailJob,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "EmailJob {EmailJobId} marked as Bounce.",
+                emailJob.Id);
+        }
         return;
     }
 }
