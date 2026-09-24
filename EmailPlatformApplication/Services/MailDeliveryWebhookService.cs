@@ -108,7 +108,7 @@ public class MailDeliveryWebhookService
                 "open",
                 StringComparison.OrdinalIgnoreCase))
         {
-            emailJob.Status = EmailJobStatus.Click;
+            emailJob.Status = EmailJobStatus.Open;
             emailJob.SentAt = request.Timestamp;
             emailJob.ErrorCode = null;
             emailJob.ErrorMessage = null;
