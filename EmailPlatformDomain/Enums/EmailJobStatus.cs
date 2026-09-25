@@ -12,5 +12,4 @@ public enum EmailJobStatus
     Click = 8,
     Open = 9,
     Bounce = 10,
-
 }

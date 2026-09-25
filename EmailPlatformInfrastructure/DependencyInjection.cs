@@ -21,8 +21,8 @@ public static class DependencyInjection
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"));
 
-            options.EnableDetailedErrors();
-            options.EnableSensitiveDataLogging();
+            // options.EnableDetailedErrors();
+            // options.EnableSensitiveDataLogging();
         });
 
         services.AddEmailHangfire(configuration);
