@@ -3,7 +3,7 @@ using SmtpServer;
 
 namespace EmailPlatformApi.Smtp;
 
-public sealed class SmtpServerHostedService : IHostedService
+public sealed class SmtpServerHostedService : BackgroundService
 {
     private readonly SmtpOptions _options;
     private readonly IServiceProvider _serviceProvider;
@@ -21,8 +21,8 @@ public sealed class SmtpServerHostedService : IHostedService
         _logger = logger;
     }
 
-    public async Task StartAsync(
-        CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(
+        CancellationToken stoppingToken)
     {
         if (!_options.Enabled)
         {
@@ -45,20 +45,34 @@ public sealed class SmtpServerHostedService : IHostedService
             "Starting SMTP server on port {Port}.",
             _options.Port);
 
-        await _smtpServer.StartAsync(
-            cancellationToken);
-
-        _logger.LogInformation(
-            "SMTP server started on port {Port}.",
-            _options.Port);
+        try
+        {
+            await _smtpServer.StartAsync(
+                stoppingToken);
+        }
+        catch (OperationCanceledException)
+            when (stoppingToken.IsCancellationRequested)
+        {
+            _logger.LogInformation(
+                "SMTP server stopped.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(
+                ex,
+                "SMTP server failed.");
+        }
     }
 
-    public Task StopAsync(
+    public override Task StopAsync(
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
             "Stopping SMTP server.");
 
-        return Task.CompletedTask;
+        _smtpServer?.Shutdown();
+
+        return base.StopAsync(
+            cancellationToken);
     }
 }
