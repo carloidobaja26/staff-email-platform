@@ -1,5 +1,6 @@
 using EmailPlatform.Infrastructure;
 using EmailPlatform.Infrastructure.BackgroundJobs;
+using EmailPlatformApi.Smtp;
 using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,13 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructure(
     builder.Configuration);
+
+builder.Services.Configure<SmtpOptions>(
+    builder.Configuration.GetSection("Smtp"));
+
+builder.Services.AddSingleton<SmtpMessageStore>();
+
+builder.Services.AddHostedService<SmtpServerHostedService>();
 
 var app = builder.Build();
 
