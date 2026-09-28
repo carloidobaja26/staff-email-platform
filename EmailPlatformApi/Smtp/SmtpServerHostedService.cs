@@ -28,7 +28,7 @@ public sealed class SmtpServerHostedService : BackgroundService
             "SMTP ExecuteAsync started.");
 
         _logger.LogInformation(
-            "SMTP Enabled={Enabled}, Port={Port}, ServerName={ServerName}",
+            "SMTP configuration: Enabled={Enabled}, Port={Port}, ServerName={ServerName}",
             _options.Enabled,
             _options.Port,
             _options.ServerName);
@@ -49,24 +49,24 @@ public sealed class SmtpServerHostedService : BackgroundService
                 .Build();
 
             _logger.LogInformation(
-                "SMTP options built successfully.");
+                "SMTP server options created successfully.");
 
             _smtpServer = new SmtpServer.SmtpServer(
                 serverOptions,
                 _serviceProvider);
 
             _logger.LogInformation(
-                "SMTP server object created.");
+                "SMTP server instance created.");
 
             _logger.LogInformation(
-                "Calling SmtpServer.StartAsync on port {Port}.",
+                "Starting SMTP server on port {Port}.",
                 _options.Port);
 
             await _smtpServer.StartAsync(
                 stoppingToken);
 
             _logger.LogWarning(
-                "SmtpServer.StartAsync returned normally.");
+                "SMTP StartAsync returned.");
         }
         catch (OperationCanceledException)
             when (stoppingToken.IsCancellationRequested)
@@ -78,7 +78,7 @@ public sealed class SmtpServerHostedService : BackgroundService
         {
             _logger.LogCritical(
                 ex,
-                "SmtpServer.StartAsync failed.");
+                "SMTP server failed to start.");
         }
     }
 
@@ -96,10 +96,9 @@ public sealed class SmtpServerHostedService : BackgroundService
         {
             _logger.LogError(
                 ex,
-                "Error while shutting down SMTP server.");
+                "Error shutting down SMTP server.");
         }
 
-        return base.StopAsync(
-            cancellationToken);
+        return base.StopAsync(cancellationToken);
     }
 }

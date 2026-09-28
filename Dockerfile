@@ -24,5 +24,6 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 EXPOSE 8080
+EXPOSE 2525
 
 ENTRYPOINT ["dotnet", "EmailPlatformApi.dll"]
