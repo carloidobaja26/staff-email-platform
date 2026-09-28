@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Options;
 using SmtpServer;
 using SmtpServer.ComponentModel;
-using SmtpServer.Storage;
 
 namespace EmailPlatformApi.Smtp;
 
@@ -23,13 +22,17 @@ public sealed class SmtpServerHostedService : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(
+        CancellationToken stoppingToken)
     {
-        _logger.LogInformation("SMTP ExecuteAsync started.");
+        _logger.LogInformation(
+            "SMTP ExecuteAsync started.");
 
         if (!_options.Enabled)
         {
-            _logger.LogWarning("SMTP server is disabled in appsettings.");
+            _logger.LogWarning(
+                "SMTP server is disabled.");
+
             return;
         }
 
@@ -39,57 +42,60 @@ public sealed class SmtpServerHostedService : BackgroundService
 
             var serverOptions = new SmtpServerOptionsBuilder()
                 .ServerName(_options.ServerName)
-                .Endpoint(ep => ep.Port(internalPort, isSecure: false))
+                .Endpoint(endpoint =>
+                    endpoint.Port(
+                        internalPort,
+                        isSecure: false))
                 .Build();
 
-            var container = new SmtpServer.ComponentModel.ServiceProvider();
-            var messageStore = _serviceProvider.GetRequiredService<IMessageStore>();
+            var messageStore =
+                _serviceProvider.GetRequiredService<SmtpMessageStore>();
 
-            container.Add(messageStore);
-            container.Add(new DelegatingMessageStoreFactory(context => messageStore));
+            var smtpServiceProvider =
+                new SmtpServer.ComponentModel.ServiceProvider();
 
-            _smtpServer = new SmtpServer.SmtpServer(serverOptions, container);
+            smtpServiceProvider.Add(messageStore);
 
-            // Add lifecycle logging to capture connected sessions in Railway logs
-            _smtpServer.SessionCreated += (s, e) =>
-            {
-                _logger.LogInformation("SMTP Client Connected: {RemoteEndPoint}", e.Context.EndpointDefinition.Endpoint);
-            };
+            _smtpServer = new SmtpServer.SmtpServer(
+                serverOptions,
+                smtpServiceProvider);
 
-            _smtpServer.SessionFaulted += (s, e) =>
-            {
-                _logger.LogError(e.Exception, "SMTP Session Faulted.");
-            };
+            _logger.LogInformation(
+                "Starting SMTP server on port {Port}.",
+                internalPort);
 
-            _smtpServer.SessionCompleted += (s, e) =>
-            {
-                _logger.LogInformation("SMTP Session Completed.");
-            };
-
-            _logger.LogInformation("Starting SMTP server internally on port {InternalPort}...", internalPort);
-
-            await _smtpServer.StartAsync(stoppingToken);
+            await _smtpServer.StartAsync(
+                stoppingToken);
         }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        catch (OperationCanceledException)
+            when (stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("SMTP server stopped due to application shutdown.");
+            _logger.LogInformation(
+                "SMTP server stopped.");
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "SMTP server failed to start.");
+            _logger.LogCritical(
+                ex,
+                "SMTP server failed.");
         }
     }
 
-    public override Task StopAsync(CancellationToken cancellationToken)
+    public override Task StopAsync(
+        CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Stopping SMTP server.");
+        _logger.LogInformation(
+            "Stopping SMTP server.");
+
         try
         {
             _smtpServer?.Shutdown();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error shutting down SMTP server.");
+            _logger.LogError(
+                ex,
+                "Error shutting down SMTP server.");
         }
 
         return base.StopAsync(cancellationToken);

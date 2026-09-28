@@ -17,7 +17,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.Configure<SmtpOptions>(
     builder.Configuration.GetSection("Smtp"));
 
-builder.Services.AddSingleton<IMessageStore, SmtpMessageStore>();
+builder.Services.AddSingleton<SmtpMessageStore>();
 builder.Services.AddHostedService<SmtpServerHostedService>();
 
 var app = builder.Build();
