@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
 using SmtpServer;
+using SmtpServer.ComponentModel;
+using SmtpServer.Storage;
 
 namespace EmailPlatformApi.Smtp;
 
@@ -33,19 +35,24 @@ public sealed class SmtpServerHostedService : BackgroundService
 
         try
         {
-            // Explicitly define endpoint port binding
+            // Bind to internal port 2525 across all network interfaces inside the container
+            const int internalPort = 2525;
+
             var serverOptions = new SmtpServerOptionsBuilder()
                 .ServerName(_options.ServerName)
-                .Endpoint(ep => ep.Port(_options.Port, isSecure: false))
+                .Endpoint(ep => ep.Port(internalPort, isSecure: false))
                 .Build();
 
-            // Adapt ASP.NET Core IServiceProvider to SmtpServer's ServiceProvider
+            // Adapt container for SmtpServer
             var container = new SmtpServer.ComponentModel.ServiceProvider();
-            container.Add(_serviceProvider.GetRequiredService<SmtpServer.Storage.IMessageStore>());
+            container.Add(_serviceProvider.GetRequiredService<IMessageStore>());
 
             _smtpServer = new SmtpServer.SmtpServer(serverOptions, container);
 
-            _logger.LogInformation("Starting SMTP server on port {Port}...", _options.Port);
+            _logger.LogInformation(
+                "Starting SMTP server internally on port {InternalPort} (Railway external proxy port: {ExternalPort})...", 
+                internalPort, 
+                _options.Port);
 
             await _smtpServer.StartAsync(stoppingToken);
         }

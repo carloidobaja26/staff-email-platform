@@ -10,8 +10,7 @@ public sealed class SmtpMessageStore : MessageStore
 {
     private readonly ILogger<SmtpMessageStore> _logger;
 
-    public SmtpMessageStore(
-        ILogger<SmtpMessageStore> logger)
+    public SmtpMessageStore(ILogger<SmtpMessageStore> logger)
     {
         _logger = logger;
     }
@@ -24,48 +23,37 @@ public sealed class SmtpMessageStore : MessageStore
     {
         try
         {
-            await using var stream = new MemoryStream();
+            await using var stream = new MemoryStream(buffer.ToArray());
 
-            var position = buffer.GetPosition(0);
+            var message = await MimeMessage.LoadAsync(stream, cancellationToken);
 
-            while (buffer.TryGet(
-                ref position,
-                out var memory))
-            {
-                await stream.WriteAsync(
-                    memory,
-                    cancellationToken);
-            }
-
-            stream.Position = 0;
-
-            var message = await MimeMessage.LoadAsync(
-                stream,
-                cancellationToken);
+            string fromAddresses = string.Join(", ", message.From);
+            string toAddresses = string.Join(", ", message.To);
+            string subject = message.Subject ?? "(No Subject)";
+            string textBody = message.TextBody ?? "(Empty)";
+            string htmlBody = message.HtmlBody ?? "(Empty)";
 
             _logger.LogInformation(
                 """
-                SMTP MESSAGE RECEIVED
+                === SMTP MESSAGE RECEIVED ===
                 From: {From}
                 To: {To}
                 Subject: {Subject}
                 TextBody: {TextBody}
                 HtmlBody: {HtmlBody}
+                =============================
                 """,
-                string.Join(", ", message.From),
-                string.Join(", ", message.To),
-                message.Subject,
-                message.TextBody,
-                message.HtmlBody);
+                fromAddresses,
+                toAddresses,
+                subject,
+                textBody,
+                htmlBody);
 
             return SmtpResponse.Ok;
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Failed to process incoming SMTP message.");
-
+            _logger.LogError(ex, "Failed to process incoming SMTP message.");
             return SmtpResponse.TransactionFailed;
         }
     }
