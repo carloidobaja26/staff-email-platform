@@ -21,82 +21,54 @@ public sealed class SmtpServerHostedService : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(
-        CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "SMTP ExecuteAsync started.");
-
-        _logger.LogInformation(
-            "SMTP configuration: Enabled={Enabled}, Port={Port}, ServerName={ServerName}",
-            _options.Enabled,
-            _options.Port,
-            _options.ServerName);
+        _logger.LogInformation("SMTP ExecuteAsync started.");
 
         if (!_options.Enabled)
         {
-            _logger.LogWarning(
-                "SMTP server is disabled.");
-
+            _logger.LogWarning("SMTP server is disabled in appsettings.");
             return;
         }
 
         try
         {
+            // Explicitly define endpoint port binding
             var serverOptions = new SmtpServerOptionsBuilder()
                 .ServerName(_options.ServerName)
-                .Port(_options.Port)
+                .Endpoint(ep => ep.Port(_options.Port, isSecure: false))
                 .Build();
 
-            _logger.LogInformation(
-                "SMTP server options created successfully.");
+            // Adapt ASP.NET Core IServiceProvider to SmtpServer's ServiceProvider
+            var container = new SmtpServer.ComponentModel.ServiceProvider();
+            container.Add(_serviceProvider.GetRequiredService<SmtpServer.Storage.IMessageStore>());
 
-            _smtpServer = new SmtpServer.SmtpServer(
-                serverOptions,
-                _serviceProvider);
+            _smtpServer = new SmtpServer.SmtpServer(serverOptions, container);
 
-            _logger.LogInformation(
-                "SMTP server instance created.");
+            _logger.LogInformation("Starting SMTP server on port {Port}...", _options.Port);
 
-            _logger.LogInformation(
-                "Starting SMTP server on port {Port}.",
-                _options.Port);
-
-            await _smtpServer.StartAsync(
-                stoppingToken);
-
-            _logger.LogWarning(
-                "SMTP StartAsync returned.");
+            await _smtpServer.StartAsync(stoppingToken);
         }
-        catch (OperationCanceledException)
-            when (stoppingToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation(
-                "SMTP server stopped because the application is shutting down.");
+            _logger.LogInformation("SMTP server stopped due to application shutdown.");
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(
-                ex,
-                "SMTP server failed to start.");
+            _logger.LogCritical(ex, "SMTP server failed to start.");
         }
     }
 
-    public override Task StopAsync(
-        CancellationToken cancellationToken)
+    public override Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation(
-            "Stopping SMTP server.");
-
+        _logger.LogInformation("Stopping SMTP server.");
         try
         {
             _smtpServer?.Shutdown();
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error shutting down SMTP server.");
+            _logger.LogError(ex, "Error shutting down SMTP server.");
         }
 
         return base.StopAsync(cancellationToken);
