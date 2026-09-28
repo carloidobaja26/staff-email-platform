@@ -22,33 +22,51 @@ public sealed class SmtpMessageStore : MessageStore
         ReadOnlySequence<byte> buffer,
         CancellationToken cancellationToken)
     {
-        await using var stream = new MemoryStream();
-
-        var position = buffer.GetPosition(0);
-
-        while (buffer.TryGet(
-            ref position,
-            out var memory))
+        try
         {
-            await stream.WriteAsync(
-                memory,
+            await using var stream = new MemoryStream();
+
+            var position = buffer.GetPosition(0);
+
+            while (buffer.TryGet(
+                ref position,
+                out var memory))
+            {
+                await stream.WriteAsync(
+                    memory,
+                    cancellationToken);
+            }
+
+            stream.Position = 0;
+
+            var message = await MimeMessage.LoadAsync(
+                stream,
                 cancellationToken);
+
+            _logger.LogInformation(
+                """
+                SMTP MESSAGE RECEIVED
+                From: {From}
+                To: {To}
+                Subject: {Subject}
+                TextBody: {TextBody}
+                HtmlBody: {HtmlBody}
+                """,
+                string.Join(", ", message.From),
+                string.Join(", ", message.To),
+                message.Subject,
+                message.TextBody,
+                message.HtmlBody);
+
+            return SmtpResponse.Ok;
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to process incoming SMTP message.");
 
-        stream.Position = 0;
-
-        var message = await MimeMessage.LoadAsync(
-            stream,
-            cancellationToken);
-
-        _logger.LogInformation(
-            "SMTP message received. From={From}, To={To}, Subject={Subject}",
-            message.From,
-            message.To,
-            message.Subject);
-
-        // We will create EmailJob here next.
-
-        return SmtpResponse.Ok;
+            return SmtpResponse.TransactionFailed;
+        }
     }
 }
