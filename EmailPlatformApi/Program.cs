@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using EmailPlatform.Infrastructure;
 using EmailPlatform.Infrastructure.BackgroundJobs;
 using EmailPlatformApi.Smtp;
@@ -39,7 +40,28 @@ var app = builder.Build();
     });
 
 // }
+app.MapGet("/smtp-test", async () =>
+{
+    try
+    {
+        using var client = new TcpClient();
 
+        await client.ConnectAsync(
+            "127.0.0.1",
+            2525);
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Something is listening on SMTP port 2525."
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.ToString());
+    }
+});
 app.UseHttpsRedirection();
 
 app.MapControllers();
