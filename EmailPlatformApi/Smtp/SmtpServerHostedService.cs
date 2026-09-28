@@ -32,6 +32,11 @@ public sealed class SmtpServerHostedService : BackgroundService
             return;
         }
 
+        _logger.LogInformation(
+            "SMTP configuration: Port={Port}, ServerName={ServerName}",
+            _options.Port,
+            _options.ServerName);
+
         var options = new SmtpServerOptionsBuilder()
             .ServerName(_options.ServerName)
             .Port(_options.Port)
@@ -40,6 +45,9 @@ public sealed class SmtpServerHostedService : BackgroundService
         _smtpServer = new SmtpServer.SmtpServer(
             options,
             _serviceProvider);
+
+        _logger.LogInformation(
+            "SMTP server instance created.");
 
         _logger.LogInformation(
             "Starting SMTP server on port {Port}.",
