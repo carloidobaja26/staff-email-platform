@@ -3,6 +3,7 @@ using EmailPlatform.Infrastructure;
 using EmailPlatform.Infrastructure.BackgroundJobs;
 using EmailPlatformApi.Smtp;
 using Hangfire;
+using SmtpServer.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,7 @@ builder.Services.AddInfrastructure(
 builder.Services.Configure<SmtpOptions>(
     builder.Configuration.GetSection("Smtp"));
 
-builder.Services.AddSingleton<SmtpMessageStore>();
+builder.Services.AddSingleton<IMessageStore, SmtpMessageStore>();
 
 builder.Services.AddHostedService<SmtpServerHostedService>();
 
