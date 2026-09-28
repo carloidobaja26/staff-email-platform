@@ -24,51 +24,61 @@ public sealed class SmtpServerHostedService : BackgroundService
     protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
+        _logger.LogInformation(
+            "SMTP ExecuteAsync started.");
+
+        _logger.LogInformation(
+            "SMTP Enabled={Enabled}, Port={Port}, ServerName={ServerName}",
+            _options.Enabled,
+            _options.Port,
+            _options.ServerName);
+
         if (!_options.Enabled)
         {
-            _logger.LogInformation(
+            _logger.LogWarning(
                 "SMTP server is disabled.");
 
             return;
         }
 
-        _logger.LogInformation(
-            "SMTP configuration: Port={Port}, ServerName={ServerName}",
-            _options.Port,
-            _options.ServerName);
-
-        var options = new SmtpServerOptionsBuilder()
-            .ServerName(_options.ServerName)
-            .Port(_options.Port)
-            .Build();
-
-        _smtpServer = new SmtpServer.SmtpServer(
-            options,
-            _serviceProvider);
-
-        _logger.LogInformation(
-            "SMTP server instance created.");
-
-        _logger.LogInformation(
-            "Starting SMTP server on port {Port}.",
-            _options.Port);
-
         try
         {
+            var serverOptions = new SmtpServerOptionsBuilder()
+                .ServerName(_options.ServerName)
+                .Port(_options.Port)
+                .Build();
+
+            _logger.LogInformation(
+                "SMTP options built successfully.");
+
+            _smtpServer = new SmtpServer.SmtpServer(
+                serverOptions,
+                _serviceProvider);
+
+            _logger.LogInformation(
+                "SMTP server object created.");
+
+            _logger.LogInformation(
+                "Calling SmtpServer.StartAsync on port {Port}.",
+                _options.Port);
+
             await _smtpServer.StartAsync(
                 stoppingToken);
+
+            _logger.LogWarning(
+                "SmtpServer.StartAsync returned normally.");
         }
         catch (OperationCanceledException)
             when (stoppingToken.IsCancellationRequested)
         {
             _logger.LogInformation(
-                "SMTP server stopped.");
+                "SMTP server stopped because the application is shutting down.");
         }
         catch (Exception ex)
         {
             _logger.LogCritical(
                 ex,
-                "SMTP server failed.");
+                "SmtpServer.StartAsync failed.");
         }
     }
 
@@ -78,7 +88,16 @@ public sealed class SmtpServerHostedService : BackgroundService
         _logger.LogInformation(
             "Stopping SMTP server.");
 
-        _smtpServer?.Shutdown();
+        try
+        {
+            _smtpServer?.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error while shutting down SMTP server.");
+        }
 
         return base.StopAsync(
             cancellationToken);
