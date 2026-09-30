@@ -9,6 +9,10 @@ public static class HangfireJobScheduler
         RecurringJob.AddOrUpdate<HangfireEmailRetryJob>(
             "email-job-retry-worker",
             job => job.ExecuteAsync(),
-            "* * * * *");
+            "*/1 * * * *",
+            new RecurringJobOptions
+            {
+                QueueName = "routine"
+            });
     }
 }

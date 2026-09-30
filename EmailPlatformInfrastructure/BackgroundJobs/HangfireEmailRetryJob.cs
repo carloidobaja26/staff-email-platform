@@ -21,11 +21,22 @@ public sealed class HangfireEmailRetryJob
     public async Task ExecuteAsync()
     {
         _logger.LogInformation(
-            "=== HANGFIRE EMAIL RETRY SCANNER STARTED ===");
+            "========== HANGFIRE RETRY JOB STARTED ==========");
 
-        await _retryWorker.ProcessAsync();
+        try
+        {
+            await _retryWorker.ProcessAsync();
 
-        _logger.LogInformation(
-            "=== HANGFIRE EMAIL RETRY SCANNER FINISHED ===");
+            _logger.LogInformation(
+                "========== HANGFIRE RETRY JOB FINISHED ==========");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "========== HANGFIRE RETRY JOB FAILED ==========");
+
+            throw;
+        }
     }
 }
