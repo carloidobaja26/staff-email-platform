@@ -9,8 +9,7 @@ public static class HangfireJobScheduler
     {
         RecurringJob.AddOrUpdate<IEmailRetryWorker>(
             "email-job-retry-worker",
-            worker => worker.ProcessAsync(
-                CancellationToken.None),
+            worker => worker.ProcessAsync(CancellationToken.None),
             "* * * * *");
     }
 }

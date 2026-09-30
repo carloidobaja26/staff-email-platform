@@ -1,4 +1,6 @@
 using System.Net.Sockets;
+using EmailPlatform.Application.Interfaces;
+using EmailPlatform.Application.Services;
 using EmailPlatform.Infrastructure;
 using EmailPlatform.Infrastructure.BackgroundJobs;
 using EmailPlatformApi.Smtp;
@@ -19,7 +21,8 @@ builder.Services.Configure<SmtpOptions>(
 
 builder.Services.AddSingleton<SmtpMessageStore>();
 builder.Services.AddHostedService<SmtpServerHostedService>();
-
+builder.Services.AddScoped<IEmailRetryWorker, EmailRetryWorker>();
+builder.Services.AddScoped<IEmailJobProcessor, EmailJobProcessor>();
 var app = builder.Build();
 
 app.UseSwagger();
@@ -32,7 +35,8 @@ app.UseHangfireDashboard(
         Authorization = new[] { new AllowAllHangfireAuthorizationFilter() }
     });
 HangfireJobScheduler.RegisterRecurringJobs();
-
+BackgroundJob.Enqueue<IEmailRetryWorker>(
+    worker => worker.ProcessAsync(CancellationToken.None));
 // Dynamic SMTP test endpoint
 app.MapGet("/smtp-test", async (IOptions<SmtpOptions> smtpOptions) =>
 {

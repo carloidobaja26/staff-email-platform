@@ -24,7 +24,9 @@ public sealed class EmailRetryWorker : IEmailRetryWorker
         CancellationToken cancellationToken = default)
     {
         var now = DateTimeOffset.UtcNow;
-
+        _logger.LogInformation(
+            "EMAIL RETRY WORKER RUNNING at {Now}",
+            now);
         var jobs =
             await _emailJobRepository.GetRetryableJobsAsync(
                 now,
