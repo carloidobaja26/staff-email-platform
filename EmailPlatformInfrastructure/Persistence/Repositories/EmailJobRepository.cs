@@ -60,7 +60,7 @@ public class EmailJobRepository : IEmailJobRepository
         int batchSize = 100,
         CancellationToken cancellationToken = default)
     {
-        return await _context.EmailJobs
+        var query = _context.EmailJobs
             .Where(x =>
                 x.NextAttemptAt != null &&
                 x.NextAttemptAt <= now &&
@@ -70,7 +70,14 @@ public class EmailJobRepository : IEmailJobRepository
                     x.Status == EmailJobStatus.Bounce
                 ))
             .OrderBy(x => x.NextAttemptAt)
-            .Take(batchSize)
-            .ToListAsync(cancellationToken);
+            .Take(batchSize);
+
+        var sql = query.ToQueryString();
+
+        Console.WriteLine("========== RETRY QUERY ==========");
+        Console.WriteLine(sql);
+        Console.WriteLine("=================================");
+
+        return await query.ToListAsync(cancellationToken);
     }
 }

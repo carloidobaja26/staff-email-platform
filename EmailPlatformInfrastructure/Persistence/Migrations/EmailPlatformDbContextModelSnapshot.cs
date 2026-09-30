@@ -142,9 +142,6 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<string>("LastError")
-                        .HasColumnType("text");
-
                     b.Property<int>("MaxAttempts")
                         .HasColumnType("integer");
 
