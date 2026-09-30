@@ -113,9 +113,6 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                     b.Property<Guid>("ApplicationId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AttemptCount")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Attempts")
                         .HasColumnType("integer");
 
@@ -144,6 +141,9 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                     b.Property<string>("IdempotencyKey")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text");
 
                     b.Property<int>("MaxAttempts")
                         .HasColumnType("integer");
