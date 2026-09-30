@@ -65,7 +65,7 @@ public static class DependencyInjection
         services.AddScoped<
             IEmailWebhookEventRepository,
             EmailWebhookEventRepository>();
-
+        services.AddScoped<IEmailRetryWorker, EmailRetryWorker>();
         return services;
     }
 }

@@ -136,7 +136,7 @@ public class MailDeliveryWebhookService
             if (IsRetryableBounce(request))
             {
                 emailJob.Status = EmailJobStatus.Pending;
-                emailJob.NextAttemptAt = CalculateNextAttempt(emailJob.AttemptCount);
+                emailJob.NextAttemptAt = CalculateNextAttempt(emailJob.Attempts);
             }
 
             await _iEmailJobRepository.UpdateAsync(

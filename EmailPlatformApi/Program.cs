@@ -31,6 +31,7 @@ app.UseHangfireDashboard(
     {
         Authorization = new[] { new AllowAllHangfireAuthorizationFilter() }
     });
+HangfireJobScheduler.RegisterRecurringJobs();
 
 // Dynamic SMTP test endpoint
 app.MapGet("/smtp-test", async (IOptions<SmtpOptions> smtpOptions) =>

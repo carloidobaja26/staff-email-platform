@@ -43,15 +43,15 @@ public class EmailJob
     public string? IdempotencyKey { get; set; }
     public string? CorrelationTag { get; set; }
 
-    public int AttemptCount { get; set; }
-
-    public int MaxAttempts { get; set; } = 3;
+    public int MaxAttempts { get; set; } = 5;
 
     public DateTimeOffset? NextAttemptAt { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? UpdatedAt { get; set; }
+
+    public string? LastError { get; set; }
 
     public ICollection<EmailDelivery> Deliveries { get; set; } = new List<EmailDelivery>();
 }

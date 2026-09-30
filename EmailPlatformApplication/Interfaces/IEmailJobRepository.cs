@@ -19,4 +19,9 @@ public interface IEmailJobRepository
     Task<EmailJob?> GetByCorrelationTagAsync(
         string correlationTag,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<EmailJob>> GetRetryableJobsAsync(
+        DateTimeOffset now,
+        int batchSize = 100,
+        CancellationToken cancellationToken = default);
 }
