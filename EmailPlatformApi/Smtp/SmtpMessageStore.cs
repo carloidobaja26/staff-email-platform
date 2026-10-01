@@ -1,4 +1,8 @@
 using System.Buffers;
+using EmailPlatform.Application.Interfaces;
+using EmailPlatform.Domain.Entities;
+using EmailPlatform.Domain.Enums;
+using Microsoft.Extensions.Options;
 using MimeKit;
 using SmtpServer;
 using SmtpServer.Protocol;
@@ -8,10 +12,17 @@ namespace EmailPlatformApi.Smtp;
 
 public sealed class SmtpMessageStore : MessageStore
 {
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IOptions<SmtpOptions> _options;
     private readonly ILogger<SmtpMessageStore> _logger;
 
-    public SmtpMessageStore(ILogger<SmtpMessageStore> logger)
+    public SmtpMessageStore(
+        IServiceScopeFactory scopeFactory,
+        IOptions<SmtpOptions> options,
+        ILogger<SmtpMessageStore> logger)
     {
+        _scopeFactory = scopeFactory;
+        _options = options;
         _logger = logger;
     }
 
@@ -23,15 +34,28 @@ public sealed class SmtpMessageStore : MessageStore
     {
         try
         {
-            await using var stream = new MemoryStream(buffer.ToArray());
+            await using var stream =
+                new MemoryStream(buffer.ToArray());
 
-            var message = await MimeMessage.LoadAsync(stream, cancellationToken);
+            var message =
+                await MimeMessage.LoadAsync(
+                    stream,
+                    cancellationToken);
 
-            string fromAddresses = string.Join(", ", message.From);
-            string toAddresses = string.Join(", ", message.To);
-            string subject = message.Subject ?? "(No Subject)";
-            string textBody = message.TextBody ?? "(Empty)";
-            string htmlBody = message.HtmlBody ?? "(Empty)";
+            string fromAddresses =
+                string.Join(", ", message.From);
+
+            string toAddresses =
+                string.Join(", ", message.To);
+
+            string subject =
+                message.Subject ?? "(No Subject)";
+
+            string textBody =
+                message.TextBody ?? string.Empty;
+
+            string htmlBody =
+                message.HtmlBody ?? string.Empty;
 
             _logger.LogInformation(
                 """
@@ -49,11 +73,64 @@ public sealed class SmtpMessageStore : MessageStore
                 textBody,
                 htmlBody);
 
+            var emailJob = new EmailJob
+            {
+                Id = Guid.NewGuid(),
+
+                ApplicationId =
+                    new Guid(),
+
+                To = toAddresses,
+
+                From = fromAddresses,
+
+                Subject = subject,
+
+                Template = "smtp",
+
+                Payload = System.Text.Json.JsonSerializer.Serialize(
+                    new
+                    {
+                        TextBody = textBody,
+                        HtmlBody = htmlBody
+                    }),
+
+                Category = EmailCategory.Legacy,
+
+                Priority = EmailPriority.Normal,
+
+                Status = EmailJobStatus.Pending,
+
+                Attempts = 0,
+
+                MaxAttempts = 5,
+
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+
+            using var scope =
+                _scopeFactory.CreateScope();
+
+            var submissionService =
+                scope.ServiceProvider
+                    .GetRequiredService<IEmailSubmissionService>();
+
+            await submissionService.SubmitAsync(
+                emailJob,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "SMTP message converted to EmailJob {EmailJobId}.",
+                emailJob.Id);
+
             return SmtpResponse.Ok;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to process incoming SMTP message.");
+            _logger.LogError(
+                ex,
+                "Failed to create and enqueue EmailJob from SMTP message.");
+
             return SmtpResponse.TransactionFailed;
         }
     }

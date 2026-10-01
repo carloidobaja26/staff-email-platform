@@ -20,6 +20,7 @@ builder.Services.Configure<SmtpOptions>(
     builder.Configuration.GetSection("Smtp"));
 
 builder.Services.AddSingleton<SmtpMessageStore>();
+builder.Services.AddScoped<IEmailSubmissionService, EmailSubmissionService>();
 builder.Services.AddHostedService<SmtpServerHostedService>();
 builder.Services.AddScoped<IEmailRetryWorker, EmailRetryWorker>();
 builder.Services.AddScoped<IEmailJobProcessor, EmailJobProcessor>();
