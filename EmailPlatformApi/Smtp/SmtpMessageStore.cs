@@ -78,7 +78,7 @@ public sealed class SmtpMessageStore : MessageStore
                 Id = Guid.NewGuid(),
 
                 ApplicationId =
-                    new Guid(),
+                    Guid.Parse("11111111-1111-1111-1111-111111111111"),
 
                 To = toAddresses,
 
