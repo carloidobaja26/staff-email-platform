@@ -129,7 +129,16 @@ public sealed class SmtpMessageStore : MessageStore
         {
             _logger.LogError(
                 ex,
-                "Failed to create and enqueue EmailJob from SMTP message.");
+                """
+                SMTP → EmailJob FAILED.
+
+                ExceptionType: {ExceptionType}
+                Message: {ExceptionMessage}
+                InnerException: {InnerException}
+                """,
+                ex.GetType().FullName,
+                ex.Message,
+                ex.InnerException?.Message);
 
             return SmtpResponse.TransactionFailed;
         }
