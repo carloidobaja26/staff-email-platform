@@ -55,8 +55,6 @@ public sealed class EmailRetryWorker : IEmailRetryWorker
                 job.Id,
                 queue);
 
-            job.NextAttemptAt = null;
-
             await _emailJobRepository.UpdateAsync(
                 job,
                 cancellationToken);

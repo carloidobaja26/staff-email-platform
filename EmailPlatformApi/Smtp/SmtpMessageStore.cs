@@ -1,5 +1,6 @@
 using System.Buffers;
 using EmailPlatform.Application.Interfaces;
+using EmailPlatform.Application.Models;
 using EmailPlatform.Domain.Entities;
 using EmailPlatform.Domain.Enums;
 using Microsoft.Extensions.Options;
@@ -42,86 +43,85 @@ public sealed class SmtpMessageStore : MessageStore
                     stream,
                     cancellationToken);
 
-            string fromAddresses =
-                string.Join(", ", message.From);
+            var fromAddress = message.From
+                .OfType<MailboxAddress>()
+                .Select(x => x.Address)
+                .FirstOrDefault();
 
-            string toAddresses =
-                string.Join(", ", message.To);
+            var toAddresses = message.To
+                .OfType<MailboxAddress>()
+                .Select(x => x.Address)
+                .ToList();
 
-            string subject =
+            var subject =
                 message.Subject ?? "(No Subject)";
 
-            string textBody =
+            var textBody =
                 message.TextBody ?? string.Empty;
 
-            string htmlBody =
+            var htmlBody =
                 message.HtmlBody ?? string.Empty;
 
             _logger.LogInformation(
                 """
-                === SMTP MESSAGE RECEIVED ===
-                From: {From}
-                To: {To}
-                Subject: {Subject}
-                TextBody: {TextBody}
-                HtmlBody: {HtmlBody}
-                =============================
-                """,
-                fromAddresses,
-                toAddresses,
+            === SMTP MESSAGE RECEIVED ===
+            From: {From}
+            To: {To}
+            Subject: {Subject}
+            TextBody: {TextBody}
+            HtmlBody: {HtmlBody}
+            =============================
+            """,
+                fromAddress,
+                string.Join(", ", toAddresses),
                 subject,
                 textBody,
                 htmlBody);
 
-            var emailJob = new EmailJob
+            using var scope =
+                _scopeFactory.CreateScope();
+
+            var emailService =
+                scope.ServiceProvider
+                    .GetRequiredService<IEmailService>();
+
+            var request = new QueueEmailRequest
             {
-                Id = Guid.NewGuid(),
-
                 ApplicationId =
-                    Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    Guid.Parse(
+                        "11111111-1111-1111-1111-111111111112"),
 
-                To = toAddresses,
+                To = string.Join(",", toAddresses),
 
-                From = fromAddresses,
+                From = fromAddress,
 
                 Subject = subject,
 
                 Template = "smtp",
 
-                Payload = System.Text.Json.JsonSerializer.Serialize(
-                    new
-                    {
-                        TextBody = textBody,
-                        HtmlBody = htmlBody
-                    }),
+                Payload =
+                    System.Text.Json.JsonSerializer.Serialize(
+                        new
+                        {
+                            TextBody = textBody,
+                            HtmlBody = htmlBody
+                        }),
 
-                Category = EmailCategory.Legacy,
+                Category = (int)EmailCategory.Legacy,
 
-                Priority = EmailPriority.Normal,
+                Priority = (int)EmailPriority.Normal,
 
-                Status = EmailJobStatus.Pending,
-
-                Attempts = 0,
-
-                MaxAttempts = 5,
-
-                CreatedAt = DateTimeOffset.UtcNow
+                IdempotencyKey = null
             };
 
-            using var scope =
-                _scopeFactory.CreateScope();
-
-            var submissionService =
-                scope.ServiceProvider
-                    .GetRequiredService<IEmailSubmissionService>();
-
-            await submissionService.SubmitAsync(
-                emailJob,
-                cancellationToken);
+            var emailJobId =
+                await emailService.QueueAsync(
+                    request,
+                    cancellationToken);
 
             _logger.LogInformation(
-                "SMTP message converted to EmailJob {EmailJobId}.",
-                emailJob.Id);
+                "SMTP message queued as EmailJob {EmailJobId}.",
+                emailJobId);
 
             return SmtpResponse.Ok;
         }
@@ -130,12 +130,12 @@ public sealed class SmtpMessageStore : MessageStore
             _logger.LogError(
                 ex,
                 """
-                SMTP → EmailJob FAILED.
+            SMTP → EmailJob FAILED.
 
-                ExceptionType: {ExceptionType}
-                Message: {ExceptionMessage}
-                InnerException: {InnerException}
-                """,
+            ExceptionType: {ExceptionType}
+            Message: {ExceptionMessage}
+            InnerException: {InnerException}
+            """,
                 ex.GetType().FullName,
                 ex.Message,
                 ex.InnerException?.Message);
