@@ -73,11 +73,6 @@ public class EmailJobRepository : IEmailJobRepository
             .Take(batchSize);
 
         var sql = query.ToQueryString();
-
-        Console.WriteLine("========== RETRY QUERY ==========");
-        Console.WriteLine(sql);
-        Console.WriteLine("=================================");
-
         return await query.ToListAsync(cancellationToken);
     }
 }

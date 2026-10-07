@@ -53,13 +53,6 @@ public class EmailDeliveryProvider : IEmailProvider
 
             mimeMessage.Subject = message.Subject;
 
-            /*
-             * Use our EmailJob ID as the MIME Message-ID.
-             *
-             * Example:
-             * <emailjob-860202b495a5488da39154a389cb418c@mail.staffconnect.app>
-             */
-
             string tagValue = message.EmailJobId.ToString("N").ToLowerInvariant(); 
 
             // Add the custom tag header
@@ -75,16 +68,6 @@ public class EmailDeliveryProvider : IEmailProvider
                     message.EmailJobId,
                     message.TransactionalTag);
             }
-
-            /*
-             * Do NOT send X-Transactional-Tag yet.
-             *
-             * EmailDelivery previously returned:
-             * 501 Invalid tag.
-             *
-             * We need to determine the provider's accepted tag format
-             * before enabling it again.
-             */
 
             var bodyBuilder = new BodyBuilder
             {
