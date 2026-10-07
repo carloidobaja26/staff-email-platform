@@ -3,6 +3,7 @@ using EmailPlatform.Application.Models;
 using EmailPlatform.Domain.Entities;
 using EmailPlatform.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace EmailPlatform.Application.Services;
 
@@ -91,13 +92,25 @@ public class EmailJobProcessor : IEmailJobProcessor
         // Build email message
         // ---------------------------------------------------------
 
+        var payload =
+            JsonSerializer.Deserialize<EmailJobPayload>(
+                emailJob.Payload);
+
+        if (payload is null)
+        {
+            throw new InvalidOperationException(
+                $"EmailJob '{emailJob.Id}' has an invalid payload.");
+        }
+
         var message = new EmailMessage
         {
             To = emailJob.To,
             From = emailJob.From,
             Subject = emailJob.Subject,
-            HtmlBody = $"<p>Template: {emailJob.Template}</p>",
-            TextBody = $"Template: {emailJob.Template}",
+
+            HtmlBody = payload.HtmlBody,
+            TextBody = payload.TextBody,
+
             TransactionalTag = emailJob.CorrelationTag,
             EmailJobId = emailJobId
         };
