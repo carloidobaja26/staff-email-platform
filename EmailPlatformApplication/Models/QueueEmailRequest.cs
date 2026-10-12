@@ -3,6 +3,7 @@ namespace EmailPlatform.Application.Models;
 public class QueueEmailRequest
 {
     public Guid ApplicationId { get; init; }
+    public Guid? TenantId { get; init; }
 
     public string To { get; init; } = null!;
 

@@ -28,7 +28,7 @@ public class EmailService : IEmailService
             Id = emailJobId,
 
             ApplicationId = request.ApplicationId,
-
+            TenantId = request.TenantId,
             To = request.To,
             From = request.From,
             Subject = request.Subject,

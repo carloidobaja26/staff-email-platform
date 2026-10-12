@@ -42,7 +42,15 @@ public sealed class SmtpMessageStore : MessageStore
                 await MimeMessage.LoadAsync(
                     stream,
                     cancellationToken);
+            var tenantIdHeader =
+                message.Headers["X-Staff-Tenant-Id"];
 
+            Guid? tenantId = null;
+
+            if (Guid.TryParse(tenantIdHeader, out var parsedTenantId))
+            {
+                tenantId = parsedTenantId;
+            }
             var fromAddress = message.From
                 .OfType<MailboxAddress>()
                 .Select(x => x.Address)
@@ -94,9 +102,9 @@ public sealed class SmtpMessageStore : MessageStore
                 To = string.Join(",", toAddresses),
 
                 From = fromAddress,
-
+                
                 Subject = subject,
-
+                TenantId = tenantId,
                 Template = "smtp",
 
                 Payload =
