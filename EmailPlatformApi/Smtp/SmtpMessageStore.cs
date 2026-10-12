@@ -44,6 +44,10 @@ public sealed class SmtpMessageStore : MessageStore
                     cancellationToken);
             var tenantIdHeader =
                 message.Headers["X-Staff-Tenant-Id"];
+            _logger.LogInformation(
+                "X-Staff-Tenant-Id header value: {tenantIdHeader}",
+                tenantIdHeader
+            );
 
             Guid? tenantId = null;
 
