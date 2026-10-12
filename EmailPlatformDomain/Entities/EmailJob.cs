@@ -19,6 +19,7 @@ public class EmailJob
     public string Subject { get; set; } = null!;
 
     public string Template { get; set; } = null!;
+    public string? WebsiteName { get; set; } = null!;
 
     public string Payload { get; set; } = null!;
 

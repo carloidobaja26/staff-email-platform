@@ -188,6 +188,9 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("WebsiteName")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CorrelationTag")

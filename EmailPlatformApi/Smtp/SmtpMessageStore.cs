@@ -42,19 +42,15 @@ public sealed class SmtpMessageStore : MessageStore
                 await MimeMessage.LoadAsync(
                     stream,
                     cancellationToken);
-            var tenantIdHeader =
+            var websiteName =
                 message.Headers["X-Staff-Tenant-Id"];
             _logger.LogInformation(
-                "X-Staff-Tenant-Id header value: {tenantIdHeader}",
-                tenantIdHeader
+                "X-Staff-Website-Id header value: {tenantIdHeader}",
+                websiteName
             );
 
             Guid? tenantId = null;
 
-            if (Guid.TryParse(tenantIdHeader, out var parsedTenantId))
-            {
-                tenantId = parsedTenantId;
-            }
             var fromAddress = message.From
                 .OfType<MailboxAddress>()
                 .Select(x => x.Address)
@@ -110,7 +106,7 @@ public sealed class SmtpMessageStore : MessageStore
                 Subject = subject,
                 TenantId = tenantId,
                 Template = "smtp",
-
+                WebsiteName = websiteName,
                 Payload =
                     System.Text.Json.JsonSerializer.Serialize(
                         new
