@@ -34,7 +34,7 @@ public class EmailService : IEmailService
             Subject = request.Subject,
             Template = request.Template,
             Payload = request.Payload,
-
+            WebsiteName = request.WebsiteName,
             CorrelationTag = GenerateCorrelationTag(emailJobId),
 
             Category = (EmailCategory)request.Category,

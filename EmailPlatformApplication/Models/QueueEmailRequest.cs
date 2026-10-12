@@ -14,7 +14,7 @@ public class QueueEmailRequest
     public string Template { get; init; } = null!;
 
     public string Payload { get; init; } = "{}";
-    public string? WebsiteName { get; init; } = "{}";
+    public string? WebsiteName { get; init; }
 
     public int Category { get; init; }
 
