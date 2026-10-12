@@ -43,7 +43,7 @@ public sealed class SmtpMessageStore : MessageStore
                     stream,
                     cancellationToken);
             var websiteName =
-                message.Headers["X-Staff-Tenant-Id"];
+                message.Headers["X-Staff-Website-Id"];
             _logger.LogInformation(
                 "X-Staff-Website-Id header value: {tenantIdHeader}",
                 websiteName
