@@ -1,5 +1,6 @@
 using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
+using EmailPlatform.Domain.Entities;
 using EmailPlatform.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
@@ -10,13 +11,16 @@ public class MailDeliveryWebhookService
 {
     private readonly ILogger<MailDeliveryWebhookService> _logger;
     private readonly IEmailJobRepository _iEmailJobRepository;
+    private readonly IEmailWebhookEventRepository _iEmailWebhookEventRepository;
 
     public MailDeliveryWebhookService(
         ILogger<MailDeliveryWebhookService> logger,
-        IEmailJobRepository iEmailJobRepository)
+        IEmailJobRepository iEmailJobRepository,
+        IEmailWebhookEventRepository iEmailWebhookEventRepository)
     {
         _logger = logger;
         _iEmailJobRepository = iEmailJobRepository;
+        _iEmailWebhookEventRepository = iEmailWebhookEventRepository;
     }
 
     public async Task ProcessAsync(
@@ -79,7 +83,6 @@ public class MailDeliveryWebhookService
             await _iEmailJobRepository.UpdateAsync(
                 emailJob,
                 cancellationToken);
-
             _logger.LogInformation(
                 "EmailJob {EmailJobId} marked as Accepted.",
                 emailJob.Id);
@@ -151,6 +154,18 @@ public class MailDeliveryWebhookService
                 IsRetryableBounce(request),
                 emailJob.NextAttemptAt);
         }
+        var webhookEvent = new EmailWebhookEvent
+        {
+            Provider = "maildelivery",
+            EventId = tag,
+            EmailJobId = emailJob.Id,
+            EventType = request.Type,
+            ReceivedAt = DateTimeOffset.UtcNow
+        };
+
+        await _iEmailWebhookEventRepository.AddAsync(
+            webhookEvent,
+            cancellationToken);
         return;
     }
 

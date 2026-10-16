@@ -216,6 +216,9 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("EmailJobId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("EventId")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -235,6 +238,8 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmailJobId");
 
                     b.HasIndex("Provider", "EventId")
                         .IsUnique();
@@ -262,6 +267,17 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("EmailPlatform.Domain.Entities.EmailWebhookEvent", b =>
+                {
+                    b.HasOne("EmailPlatform.Domain.Entities.EmailJob", "EmailJob")
+                        .WithMany()
+                        .HasForeignKey("EmailJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EmailJob");
                 });
 
             modelBuilder.Entity("EmailPlatform.Domain.Entities.EmailApplication", b =>
