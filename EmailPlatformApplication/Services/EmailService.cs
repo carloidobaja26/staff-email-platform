@@ -66,7 +66,7 @@ public class EmailService : IEmailService
                 emailJob.TenantId = tenantData.Id;
             }
         }
-        Console.WriteLine("tenantId" + emailJob.TenantId);
+        Console.WriteLine("tenantData tenantId" + emailJob.TenantId);
 
         await _emailJobRepository.AddAsync(
             emailJob,
