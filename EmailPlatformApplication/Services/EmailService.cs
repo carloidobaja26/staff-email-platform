@@ -53,21 +53,26 @@ public class EmailService : IEmailService
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        if (string.IsNullOrWhiteSpace(request.WebsiteName))
+        if (!string.IsNullOrWhiteSpace(request.WebsiteName))
         {
             var tenantData = await _tenantRepository
                 .GetByWebsiteNameAsync(request.WebsiteName);
-            Console.WriteLine("tenantData" + request.WebsiteName);
-            Console.WriteLine(tenantData.Name);
+
+            Console.WriteLine($"WebsiteName: {request.WebsiteName}");
+
             if (tenantData != null)
             {
-                Console.WriteLine("tenantData" + tenantData.Id);
-                Console.WriteLine(tenantData.Name);
+                Console.WriteLine($"TenantId: {tenantData.Id}");
+                Console.WriteLine($"TenantName: {tenantData.Name}");
+
                 emailJob.TenantId = tenantData.Id;
             }
+            else
+            {
+                Console.WriteLine(
+                    $"No tenant found for WebsiteName: {request.WebsiteName}");
+            }
         }
-        Console.WriteLine("tenantData tenantId" + emailJob.TenantId);
-
         await _emailJobRepository.AddAsync(
             emailJob,
             cancellationToken);
