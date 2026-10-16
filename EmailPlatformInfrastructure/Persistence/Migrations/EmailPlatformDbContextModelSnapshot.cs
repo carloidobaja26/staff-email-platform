@@ -201,6 +201,8 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
 
                     b.HasIndex("Status");
 
+                    b.HasIndex("TenantId");
+
                     b.HasIndex("ApplicationId", "IdempotencyKey")
                         .IsUnique()
                         .HasFilter("\"IdempotencyKey\" IS NOT NULL");
@@ -247,6 +249,54 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                     b.ToTable("email_webhook_events", (string)null);
                 });
 
+            modelBuilder.Entity("EmailPlatform.Domain.Entities.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("WebsiteName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("tenants", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            Name = "Development",
+                            WebsiteName = "https://dev2.staffconnect-app.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000002"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            Name = "Demo",
+                            WebsiteName = "https://demo.staffconnect-app.com"
+                        });
+                });
+
             modelBuilder.Entity("EmailPlatform.Domain.Entities.EmailDelivery", b =>
                 {
                     b.HasOne("EmailPlatform.Domain.Entities.EmailJob", "EmailJob")
@@ -266,7 +316,14 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EmailPlatform.Domain.Entities.Tenant", "Tenant")
+                        .WithMany("EmailJobs")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Application");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("EmailPlatform.Domain.Entities.EmailWebhookEvent", b =>
@@ -288,6 +345,11 @@ namespace EmailPlatformInfrastructure.Persistence.Migrations
             modelBuilder.Entity("EmailPlatform.Domain.Entities.EmailJob", b =>
                 {
                     b.Navigation("Deliveries");
+                });
+
+            modelBuilder.Entity("EmailPlatform.Domain.Entities.Tenant", b =>
+                {
+                    b.Navigation("EmailJobs");
                 });
 #pragma warning restore 612, 618
         }

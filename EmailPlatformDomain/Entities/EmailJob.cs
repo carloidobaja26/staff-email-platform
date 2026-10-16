@@ -53,4 +53,6 @@ public class EmailJob
     public DateTimeOffset? UpdatedAt { get; set; }
 
     public ICollection<EmailDelivery> Deliveries { get; set; } = new List<EmailDelivery>();
+
+    public Tenant? Tenant { get; set; }
 }

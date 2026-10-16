@@ -91,5 +91,12 @@ public class EmailJobConfiguration
             .WithOne(x => x.EmailJob)
             .HasForeignKey(x => x.EmailJobId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Tenant)
+            .WithMany(x => x.EmailJobs)
+            .HasForeignKey(x => x.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => x.TenantId);
     }
 }
