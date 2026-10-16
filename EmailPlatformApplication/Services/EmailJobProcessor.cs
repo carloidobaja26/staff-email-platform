@@ -30,10 +30,6 @@ public class EmailJobProcessor : IEmailJobProcessor
         Guid emailJobId,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            "Processing EmailJob {EmailJobId}",
-            emailJobId);
-
         var emailJob =
             await _emailJobRepository.GetByIdAsync(
                 emailJobId,
@@ -41,19 +37,9 @@ public class EmailJobProcessor : IEmailJobProcessor
 
         if (emailJob is null)
         {
-            _logger.LogWarning(
-                "EmailJob {EmailJobId} was not found.",
-                emailJobId);
-
             throw new InvalidOperationException(
                 $"Email job '{emailJobId}' was not found.");
         }
-
-        _logger.LogInformation(
-            "Loaded EmailJob {EmailJobId}. Status={Status}, Attempts={Attempts}",
-            emailJob.Id,
-            emailJob.Status,
-            emailJob.Attempts);
 
         if (emailJob.Status == EmailJobStatus.Accepted ||
             emailJob.Status == EmailJobStatus.Delivered ||
@@ -76,17 +62,9 @@ public class EmailJobProcessor : IEmailJobProcessor
         emailJob.Attempts++;
         emailJob.UpdatedAt = DateTimeOffset.UtcNow;
 
-        _logger.LogInformation(
-            "Saving EmailJob {EmailJobId} as Processing.",
-            emailJob.Id);
-
         await _emailJobRepository.UpdateAsync(
             emailJob,
             cancellationToken);
-
-        _logger.LogInformation(
-            "EmailJob {EmailJobId} marked Processing.",
-            emailJob.Id);
 
         // ---------------------------------------------------------
         // Build email message
@@ -115,23 +93,9 @@ public class EmailJobProcessor : IEmailJobProcessor
             EmailJobId = emailJobId
         };
 
-        // ---------------------------------------------------------
-        // Send email
-        // ---------------------------------------------------------
-
-        _logger.LogInformation(
-            "Sending EmailJob {EmailJobId} to {Recipient} via {Provider}.",
-            emailJob.Id,
-            emailJob.To,
-            _emailProvider.Name);
-
         var result = await _emailProvider.SendAsync(
             message,
             cancellationToken);
-
-        // ---------------------------------------------------------
-        // Provider failed
-        // ---------------------------------------------------------
 
         if (!result.Success)
         {
@@ -153,10 +117,6 @@ public class EmailJobProcessor : IEmailJobProcessor
             return;
         }
 
-        // ---------------------------------------------------------
-        // Provider did not accept the message
-        // ---------------------------------------------------------
-
         if (!result.IsAccepted)
         {
             emailJob.Status = EmailJobStatus.Failed;
@@ -167,23 +127,12 @@ public class EmailJobProcessor : IEmailJobProcessor
 
             emailJob.UpdatedAt = DateTimeOffset.UtcNow;
 
-            _logger.LogWarning(
-                "EmailJob {EmailJobId} was not accepted by provider. ErrorCode={ErrorCode}, Error={ErrorMessage}",
-                emailJob.Id,
-                result.ErrorCode,
-                result.ErrorMessage);
-
             await _emailJobRepository.UpdateAsync(
                 emailJob,
                 cancellationToken);
 
             return;
         }
-
-        // ---------------------------------------------------------
-        // Provider accepted the email
-        // ---------------------------------------------------------
-
         var delivery = new EmailDelivery
         {
             Id = Guid.NewGuid(),
@@ -195,12 +144,6 @@ public class EmailJobProcessor : IEmailJobProcessor
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        _logger.LogInformation(
-            "Creating EmailDelivery for EmailJob {EmailJobId}. Provider={Provider}, ProviderMessageId={ProviderMessageId}",
-            emailJob.Id,
-            _emailProvider.Name,
-            result.ProviderMessageId);
-
         // IMPORTANT:
         // Explicitly INSERT the new EmailDelivery.
         // Do not use emailJob.Deliveries.Add(delivery).
@@ -208,27 +151,14 @@ public class EmailJobProcessor : IEmailJobProcessor
             delivery,
             cancellationToken);
 
-        // ---------------------------------------------------------
-        // Mark EmailJob as Accepted
-        // ---------------------------------------------------------
-
         emailJob.Status = EmailJobStatus.Accepted;
         emailJob.ErrorCode = null;
         emailJob.ErrorMessage = null;
         emailJob.UpdatedAt = DateTimeOffset.UtcNow;
 
-        _logger.LogInformation(
-            "Saving EmailJob {EmailJobId} as Accepted. ProviderMessageId={ProviderMessageId}",
-            emailJob.Id,
-            result.ProviderMessageId);
-
         await _emailJobRepository.UpdateAsync(
             emailJob,
             cancellationToken);
-
-        _logger.LogInformation(
-            "EmailJob {EmailJobId} completed successfully.",
-            emailJob.Id);
     }
 
 }

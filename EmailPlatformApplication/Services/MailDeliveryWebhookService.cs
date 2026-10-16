@@ -27,27 +27,6 @@ public class MailDeliveryWebhookService
         MailDeliveryWebhookRequest request,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            """
-            MailDelivery webhook received.
-            Type: {Type}
-            Email: {Email}
-            Timestamp: {Timestamp}
-            Broadcast: {Broadcast}
-            FunnelMessage: {FunnelMessage}
-            Tag: {Tag}
-            BounceType: {BounceType}
-            Code: {Code}
-            """,
-            request.Type,
-            request.Email,
-            request.Timestamp,
-            request.Source?.Broadcast,
-            request.Source?.FunnelMessage,
-            request.Source?.Tag,
-            request.BounceType,
-            request.Code);
-
         var tag = request.Source?.Tag;
 
         if (string.IsNullOrWhiteSpace(tag))
@@ -68,8 +47,6 @@ public class MailDeliveryWebhookService
             return;
         }
 
-        // Fixed structured logging syntax
-        _logger.LogInformation("EmailJobId: {EmailJobId}", emailJob.Id);
         if (request.Type.Equals(
                 "send",
                 StringComparison.OrdinalIgnoreCase))
@@ -83,9 +60,6 @@ public class MailDeliveryWebhookService
             await _iEmailJobRepository.UpdateAsync(
                 emailJob,
                 cancellationToken);
-            _logger.LogInformation(
-                "EmailJob {EmailJobId} marked as Accepted.",
-                emailJob.Id);
         }
 
         if (request.Type.Equals(
@@ -101,10 +75,6 @@ public class MailDeliveryWebhookService
             await _iEmailJobRepository.UpdateAsync(
                 emailJob,
                 cancellationToken);
-
-            _logger.LogInformation(
-                "EmailJob {EmailJobId} marked as Click.",
-                emailJob.Id);
         }
 
         if (request.Type.Equals(
@@ -120,10 +90,6 @@ public class MailDeliveryWebhookService
             await _iEmailJobRepository.UpdateAsync(
                 emailJob,
                 cancellationToken);
-
-            _logger.LogInformation(
-                "EmailJob {EmailJobId} marked as Open.",
-                emailJob.Id);
         }
 
         if (request.Type.Equals(

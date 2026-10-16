@@ -27,13 +27,6 @@ public class EmailDeliveryProvider : IEmailProvider
         EmailMessage message,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            "EmailDeliveryProvider START. " +
-            "EmailJobId={EmailJobId}, To={To}, Subject={Subject}",
-            message.EmailJobId,
-            message.To,
-            message.Subject);
-
         try
         {
             var mimeMessage = new MimeMessage();
@@ -61,12 +54,6 @@ public class EmailDeliveryProvider : IEmailProvider
                 mimeMessage.Headers.Add(
                     "X-Transactional-Tag",
                     message.TransactionalTag);
-
-                _logger.LogInformation(
-                    "EmailDelivery transactional tag set. " +
-                    "EmailJobId={EmailJobId}, Tag={Tag}",
-                    message.EmailJobId,
-                    message.TransactionalTag);
             }
 
             var bodyBuilder = new BodyBuilder
@@ -80,37 +67,20 @@ public class EmailDeliveryProvider : IEmailProvider
 
             using var client = new SmtpClient();
 
-            _logger.LogInformation(
-                "Connecting to EmailDelivery SMTP {Host}:{Port}",
-                _options.Host,
-                _options.Port);
-
             await client.ConnectAsync(
                 _options.Host,
                 _options.Port,
                 SecureSocketOptions.StartTls,
                 cancellationToken);
 
-            _logger.LogInformation(
-                "Connected to EmailDelivery SMTP.");
-
             await client.AuthenticateAsync(
                 _options.Username,
                 _options.Password,
                 cancellationToken);
 
-            _logger.LogInformation(
-                "Authenticated with EmailDelivery SMTP.");
-
             await client.SendAsync(
                 mimeMessage,
                 cancellationToken);
-
-            _logger.LogInformation(
-                "SMTP SEND completed. " +
-                "EmailJobId={EmailJobId}, MessageId={MessageId}",
-                message.EmailJobId,
-                mimeMessage.MessageId);
 
             await client.DisconnectAsync(
                 true,

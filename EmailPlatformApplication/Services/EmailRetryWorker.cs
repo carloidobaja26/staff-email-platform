@@ -35,16 +35,8 @@ public sealed class EmailRetryWorker : IEmailRetryWorker
 
         if (jobs.Count == 0)
         {
-            _logger.LogDebug(
-                "No email jobs are ready for retry.");
-
             return;
         }
-
-        _logger.LogInformation(
-            "Found {Count} email jobs ready for retry.",
-            jobs.Count);
-
         foreach (var job in jobs)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -58,13 +50,6 @@ public sealed class EmailRetryWorker : IEmailRetryWorker
             await _emailJobRepository.UpdateAsync(
                 job,
                 cancellationToken);
-
-            _logger.LogInformation(
-                "EmailJob {EmailJobId} queued for retry on queue {Queue}. Attempt {Attempt}/{MaxAttempts}.",
-                job.Id,
-                queue,
-                job.Attempts + 1,
-                job.MaxAttempts);
         }
     }
 

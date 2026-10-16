@@ -58,19 +58,9 @@ public class EmailService : IEmailService
             var tenantData = await _tenantRepository
                 .GetByWebsiteNameAsync(request.WebsiteName);
 
-            Console.WriteLine($"WebsiteName: {request.WebsiteName}");
-
             if (tenantData != null)
             {
-                Console.WriteLine($"TenantId: {tenantData.Id}");
-                Console.WriteLine($"TenantName: {tenantData.Name}");
-
                 emailJob.TenantId = tenantData.Id;
-            }
-            else
-            {
-                Console.WriteLine(
-                    $"No tenant found for WebsiteName: {request.WebsiteName}");
             }
         }
         await _emailJobRepository.AddAsync(
