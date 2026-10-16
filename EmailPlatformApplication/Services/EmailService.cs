@@ -11,13 +11,16 @@ namespace EmailPlatform.Application.Services;
 public class EmailService : IEmailService
 {
     private readonly IEmailJobRepository _emailJobRepository;
+    private readonly ITenantRepository _tenantRepository;
     private readonly IEmailJobQueue _emailJobQueue;
 
     public EmailService(
         IEmailJobRepository emailJobRepository,
+        ITenantRepository tenantRepository,
         IEmailJobQueue emailJobQueue)
     {
         _emailJobRepository = emailJobRepository;
+        _tenantRepository = tenantRepository;
         _emailJobQueue = emailJobQueue;
     }
 
@@ -49,6 +52,16 @@ public class EmailService : IEmailService
 
             CreatedAt = DateTimeOffset.UtcNow
         };
+
+        if (string.IsNullOrWhiteSpace(request.WebsiteName))
+        {
+            var tenantData = await _tenantRepository
+                .GetByWebsiteNameAsync(request.WebsiteName);
+            if (tenantData != null)
+            {
+                emailJob.TenantId = tenantData.Id;
+            }
+        }
 
         await _emailJobRepository.AddAsync(
             emailJob,

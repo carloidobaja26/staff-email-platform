@@ -51,14 +51,6 @@ public static class DependencyInjection
             EmailService>();
 
         services.AddScoped<
-            IEmailDeliveryRepository,
-            EmailDeliveryRepository>();
-
-        services.AddScoped<
-            IEmailDeliveryService,
-            EmailDeliveryService>();
-
-        services.AddScoped<
             IMailDeliveryWebhookService,
             MailDeliveryWebhookService>();
 
@@ -66,6 +58,20 @@ public static class DependencyInjection
             IEmailWebhookEventRepository,
             EmailWebhookEventRepository>();
         services.AddScoped<IEmailRetryWorker, EmailRetryWorker>();
+
+        services.AddScoped<
+            IEmailDeliveryRepository,
+            EmailDeliveryRepository>();
+        services.AddScoped<
+            IEmailDeliveryService,
+            EmailDeliveryService>();
+
+        services.AddScoped<
+            ITenantRepository,
+            TenantRepository>();
+        services.AddScoped<
+            ITenantService,
+            TenantService>();
         return services;
     }
 }
