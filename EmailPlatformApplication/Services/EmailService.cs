@@ -57,11 +57,16 @@ public class EmailService : IEmailService
         {
             var tenantData = await _tenantRepository
                 .GetByWebsiteNameAsync(request.WebsiteName);
+            Console.WriteLine("tenantData" + request.WebsiteName);
+            Console.WriteLine(tenantData.Name);
             if (tenantData != null)
             {
+                Console.WriteLine("tenantData" + tenantData.Id);
+                Console.WriteLine(tenantData.Name);
                 emailJob.TenantId = tenantData.Id;
             }
         }
+        Console.WriteLine("tenantId" + emailJob.TenantId);
 
         await _emailJobRepository.AddAsync(
             emailJob,
