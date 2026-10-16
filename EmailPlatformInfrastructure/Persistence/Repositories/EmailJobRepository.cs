@@ -75,4 +75,38 @@ public class EmailJobRepository : IEmailJobRepository
         var sql = query.ToQueryString();
         return await query.ToListAsync(cancellationToken);
     }
+
+    public async Task<(List<EmailJob> Items, int TotalNumber)> GetPagedAsync(
+        Guid tenantId,
+        int pageNumber,
+        int pageSize,
+        string? search)
+    {
+        var query = _context.EmailJobs
+            .AsNoTracking()
+            .Include(x => x.Application)
+            .Where(c => c.TenantId == tenantId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.Trim();
+
+            query = query.Where(c =>
+                c.From.Contains(search) ||
+                c.To.Contains(search) ||
+                c.Subject.Contains(search) ||
+                c.WebsiteName.Contains(search));
+        }
+
+        var totalNumber = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(c => c.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalNumber);
+
+    }
 }

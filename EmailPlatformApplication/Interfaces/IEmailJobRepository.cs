@@ -1,3 +1,5 @@
+using EmailPlatform.Application.Common.Pagination;
+using EmailPlatform.Application.Common.Responses;
 using EmailPlatform.Domain.Entities;
 
 namespace EmailPlatform.Application.Interfaces;
@@ -24,4 +26,10 @@ public interface IEmailJobRepository
         DateTimeOffset now,
         int batchSize = 100,
         CancellationToken cancellationToken = default);
+
+    Task<(List<EmailJob> Items, int TotalNumber)> GetPagedAsync(
+        Guid tenantId,
+        int pageNumber,
+        int pageSize,
+        string? search);
 }

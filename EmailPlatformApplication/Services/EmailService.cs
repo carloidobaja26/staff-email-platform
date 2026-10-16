@@ -1,3 +1,6 @@
+using EmailPlatform.Application.Common.Pagination;
+using EmailPlatform.Application.Common.Responses;
+using EmailPlatform.Application.Features.Emails.DTOs;
 using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
 using EmailPlatform.Domain.Entities;
@@ -90,4 +93,64 @@ public class EmailService : IEmailService
 
         return "job" + new string(chars);
     }
+    public async Task<ApiResponse<PagedResponse<EmailJobDto>>> GetPagedAsync(
+        Guid tenantId,
+        PaginationRequest request)
+    {
+        if (request.PageNumber < 1)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailJobDto>>(
+                nameof(request.PageNumber),
+                "Page number must be greater than 0.");
+        }
+
+        if (request.PageSize < 1)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailJobDto>>(
+                nameof(request.PageSize),
+                "Page size must be greater than 0.");
+        }
+
+        if (request.PageSize > 100)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailJobDto>>(
+                nameof(request.PageSize),
+                "Page size cannot exceed 100.");
+        }
+
+        var result = await _emailJobRepository.GetPagedAsync(
+            tenantId,
+            request.PageNumber,
+            request.PageSize,
+            request.Search);
+
+        var response = new PagedResponse<EmailJobDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalNumber = result.TotalNumber,
+            Items = result.Items.Select(MapToDto)
+        };
+
+        return ApiResponseFactory.Success(
+            response,
+            "Email Job retrieved successfully.");
+    }
+    
+    private static EmailJobDto MapToDto(EmailJob emailJob)
+    {
+        return new EmailJobDto
+        {
+            Id = emailJob.Id,
+            ApplicationName = emailJob.Application.Name,
+            To = emailJob.To,
+            From = emailJob.From,
+            Subject = emailJob.Subject,
+            Category = emailJob.Category.ToString(),
+            Status = emailJob.Status.ToString(),
+            ProcessingStartedAt = emailJob.ProcessingStartedAt,
+            SentAt = emailJob.SentAt
+        };
+    }
+
 }

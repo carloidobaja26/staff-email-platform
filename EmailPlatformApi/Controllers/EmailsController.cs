@@ -1,12 +1,14 @@
 using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
 using Microsoft.AspNetCore.Mvc;
+using EmailPlatform.Application.Common.Pagination;
+using EmailPlatformApi.Api.Controllers;
 
 namespace EmailPlatformApi.Controllers;
 
 [ApiController]
 [Route("api/emails")]
-public class EmailsController : ControllerBase
+public class EmailsController : BaseController
 {
     private readonly IEmailService _emailService;
 
@@ -34,5 +36,17 @@ public class EmailsController : ControllerBase
                 emailJobId
             }
         });
+    }
+
+    [HttpGet("paged")]
+    public async Task<IActionResult> GetPaged(
+        [FromQuery] PaginationRequest request)
+    {
+        var tenantId = Guid.Parse("a8a87514-8fa1-468d-a58a-5a29117997ac");
+
+        return HandleResponse(
+            await _emailService.GetPagedAsync(
+                tenantId,
+                request));
     }
 }
