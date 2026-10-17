@@ -12,4 +12,11 @@ public interface IEmailWebhookEventRepository
     Task AddAsync(
         EmailWebhookEvent webhookEvent,
         CancellationToken cancellationToken = default);
+
+    Task<(List<EmailWebhookEvent> Items, int TotalNumber)> GetPagedAsync(
+        Guid emailJobId,
+        int pageNumber,
+        int pageSize,
+        string? search);
+
 }

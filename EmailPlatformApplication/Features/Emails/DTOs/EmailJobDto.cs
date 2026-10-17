@@ -23,5 +23,23 @@ public class EmailJobDto
     public DateTimeOffset? ProcessingStartedAt { get; set; }
 
     public DateTimeOffset? SentAt { get; set; }
+    public Guid? TenantId { get; set; }
 
+    public Guid ApplicationId { get; set; }
+    public string Template { get; set; } = null!;
+    public string? WebsiteName { get; set; } = null!;
+    public string Payload { get; set; } = null!;
+    public int Attempts { get; set; }
+    public DateTimeOffset? ScheduledAt { get; set; }
+
+    public string? ErrorCode { get; set; }
+
+    public string? ErrorMessage { get; set; }
+
+    public string? IdempotencyKey { get; set; }
+    public string? CorrelationTag { get; set; }
+
+    public int MaxAttempts { get; set; } = 5;
+
+    public DateTimeOffset? NextAttemptAt { get; set; }
 }

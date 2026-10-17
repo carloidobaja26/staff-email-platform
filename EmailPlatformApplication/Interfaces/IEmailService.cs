@@ -14,4 +14,8 @@ public interface IEmailService
     Task<ApiResponse<PagedResponse<EmailJobDto>>> GetPagedAsync(
         Guid tenantId,
         PaginationRequest request);
+
+    Task<ApiResponse<PagedResponse<EmailJobDto>>> GetAdminPagedAsync(
+        PaginationRequest request);
+    Task<ApiResponse<EmailJobDto>> GetByIdAsync(Guid id);
 }

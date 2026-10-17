@@ -49,4 +49,19 @@ public class EmailsController : BaseController
                 tenantId,
                 request));
     }
+
+    [HttpGet("AdminPaged")]
+    public async Task<IActionResult> GetAdminPaged(
+        [FromQuery] PaginationRequest request)
+    {
+        return HandleResponse(
+            await _emailService.GetAdminPagedAsync(
+                request));
+    }
+
+   [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id)
+    {
+        return HandleResponse(await _emailService.GetByIdAsync(id));
+    }
 }

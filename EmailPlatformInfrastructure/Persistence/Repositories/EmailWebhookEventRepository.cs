@@ -37,4 +37,35 @@ public class EmailWebhookEventRepository
         await _context.SaveChangesAsync(
             cancellationToken);
     }
+
+    public async Task<(List<EmailWebhookEvent> Items, int TotalNumber)> GetPagedAsync(
+        Guid emailJob,
+        int pageNumber,
+        int pageSize,
+        string? search)
+    {
+        var query = _context.EmailWebhookEvents
+            .AsNoTracking()
+            .Where(c => c.EmailJobId == emailJob);;
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.Trim();
+
+            query = query.Where(c =>
+                c.EventType.Contains(search) ||
+                c.Provider.Contains(search));
+        }
+
+        var totalNumber = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(c => c.ReceivedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalNumber);
+
+    }
 }

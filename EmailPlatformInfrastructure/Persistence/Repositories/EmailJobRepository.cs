@@ -20,6 +20,7 @@ public class EmailJobRepository : IEmailJobRepository
         CancellationToken cancellationToken = default)
     {
         return await _context.EmailJobs
+            .Include(x => x.Application)
             .FirstOrDefaultAsync(
                 x => x.Id == id,
                 cancellationToken);
@@ -108,5 +109,38 @@ public class EmailJobRepository : IEmailJobRepository
 
         return (items, totalNumber);
 
+    }
+
+    public async Task<(List<EmailJob> Items, int TotalNumber)> GetAdminPagedAsync(
+        int pageNumber,
+        int pageSize,
+        string? search)
+    {
+        var query = _context.EmailJobs
+            .AsNoTracking()
+            .Include(x => x.Application)
+            .Include(x => x.Tenant)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.Trim();
+
+            query = query.Where(x =>
+                (x.From != null && x.From.Contains(search)) ||
+                x.To.Contains(search) ||
+                x.Subject.Contains(search) ||
+                (x.WebsiteName != null && x.WebsiteName.Contains(search)));
+        }
+
+        var totalNumber = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalNumber);
     }
 }

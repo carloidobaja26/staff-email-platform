@@ -149,7 +149,64 @@ public class EmailService : IEmailService
             response,
             "Email Job retrieved successfully.");
     }
-    
+
+    public async Task<ApiResponse<PagedResponse<EmailJobDto>>> GetAdminPagedAsync(
+        PaginationRequest request)
+    {
+        if (request.PageNumber < 1)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailJobDto>>(
+                nameof(request.PageNumber),
+                "Page number must be greater than 0.");
+        }
+
+        if (request.PageSize < 1)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailJobDto>>(
+                nameof(request.PageSize),
+                "Page size must be greater than 0.");
+        }
+
+        if (request.PageSize > 100)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailJobDto>>(
+                nameof(request.PageSize),
+                "Page size cannot exceed 100.");
+        }
+
+        var result = await _emailJobRepository.GetAdminPagedAsync(
+            request.PageNumber,
+            request.PageSize,
+            request.Search);
+
+        var response = new PagedResponse<EmailJobDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalNumber = result.TotalNumber,
+            Items = result.Items.Select(MapToDto)
+        };
+
+        return ApiResponseFactory.Success(
+            response,
+            "Email Job retrieved successfully.");
+    }
+
+    public async Task<ApiResponse<EmailJobDto>> GetByIdAsync(Guid id)
+    {
+        var emailJob = await _emailJobRepository.GetByIdAsync(id);
+
+        if (emailJob == null)
+        {
+            return ApiResponseFactory.NotFound<EmailJobDto>(
+                "Email Job not found.");
+        }
+
+        return ApiResponseFactory.Success(
+            MapToDto(emailJob),
+            "Email Job  retrieved successfully.");
+    }
+
     private static EmailJobDto MapToDto(EmailJob emailJob)
     {
         return new EmailJobDto
@@ -162,7 +219,20 @@ public class EmailService : IEmailService
             Category = emailJob.Category.ToString(),
             Status = emailJob.Status.ToString(),
             ProcessingStartedAt = emailJob.ProcessingStartedAt,
-            SentAt = emailJob.SentAt
+            SentAt = emailJob.SentAt,
+            TenantId = emailJob.TenantId,
+            ApplicationId = emailJob.ApplicationId,
+            Template = emailJob.Template,
+            WebsiteName = emailJob.WebsiteName,
+            Payload = emailJob.Payload,
+            Attempts = emailJob.Attempts,
+            ScheduledAt = emailJob.ScheduledAt,
+            ErrorCode = emailJob.ErrorCode,
+            ErrorMessage = emailJob.ErrorMessage,
+            IdempotencyKey = emailJob.IdempotencyKey,
+            CorrelationTag = emailJob.CorrelationTag,
+            MaxAttempts = emailJob.MaxAttempts,
+            NextAttemptAt = emailJob.NextAttemptAt,
         };
     }
 

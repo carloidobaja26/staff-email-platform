@@ -1,12 +1,14 @@
+using EmailPlatform.Application.Common.Pagination;
 using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
+using EmailPlatformApi.Api.Controllers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmailPlatformApi.Controllers;
 
 [ApiController]
 [Route("api/webhooks/maildelivery")]
-public class MailDeliveryWebhookController : ControllerBase
+public class MailDeliveryWebhookController : BaseController
 {
     private readonly IMailDeliveryWebhookService _webhookService;
 
@@ -29,5 +31,16 @@ public class MailDeliveryWebhookController : ControllerBase
         {
             success = true
         });
+    }
+
+    [HttpGet("paged")]
+    public async Task<IActionResult> GetPaged(
+        [FromQuery] PaginationRequest request,
+        [FromQuery] Guid emailJobId)
+    {
+        return HandleResponse(
+            await _webhookService.GetPagedAsync(
+                emailJobId,
+                request));
     }
 }

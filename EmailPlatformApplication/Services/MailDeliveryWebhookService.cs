@@ -1,3 +1,6 @@
+using EmailPlatform.Application.Common.Pagination;
+using EmailPlatform.Application.Common.Responses;
+using EmailPlatform.Application.Features.EmailWebhookEvents.DTOs;
 using EmailPlatform.Application.Interfaces;
 using EmailPlatform.Application.Models;
 using EmailPlatform.Domain.Entities;
@@ -158,6 +161,63 @@ public class MailDeliveryWebhookService
             2 => DateTimeOffset.UtcNow.AddMinutes(20),
             3 => DateTimeOffset.UtcNow.AddMinutes(40),
             _ => DateTimeOffset.UtcNow.AddHours(1)
+        };
+    }
+
+    public async Task<ApiResponse<PagedResponse<EmailWebhookEventDto>>> GetPagedAsync(
+        Guid emailJobId,
+        PaginationRequest request)
+    {
+        if (request.PageNumber < 1)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailWebhookEventDto>>(
+                nameof(request.PageNumber),
+                "Page number must be greater than 0.");
+        }
+
+        if (request.PageSize < 1)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailWebhookEventDto>>(
+                nameof(request.PageSize),
+                "Page size must be greater than 0.");
+        }
+
+        if (request.PageSize > 100)
+        {
+            return ApiResponseFactory.Validation<PagedResponse<EmailWebhookEventDto>>(
+                nameof(request.PageSize),
+                "Page size cannot exceed 100.");
+        }
+
+        var result = await _iEmailWebhookEventRepository.GetPagedAsync(
+            emailJobId,
+            request.PageNumber,
+            request.PageSize,
+            request.Search);
+
+        var response = new PagedResponse<EmailWebhookEventDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalNumber = result.TotalNumber,
+            Items = result.Items.Select(MapToDto)
+        };
+
+        return ApiResponseFactory.Success(
+            response,
+            "Email Job retrieved successfully.");
+    }
+
+    private static EmailWebhookEventDto MapToDto(EmailWebhookEvent emailWebhookEvent)
+    {
+        return new EmailWebhookEventDto
+        {
+            Id = emailWebhookEvent.Id,
+            Provider = emailWebhookEvent.Provider,
+            EventId = emailWebhookEvent.EventId,
+            EventType = emailWebhookEvent.EventType,
+            EmailJobId = emailWebhookEvent.EmailJobId,
+            ReceivedAt = emailWebhookEvent.ReceivedAt,
         };
     }
 }

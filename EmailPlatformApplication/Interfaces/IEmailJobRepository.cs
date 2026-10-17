@@ -32,4 +32,10 @@ public interface IEmailJobRepository
         int pageNumber,
         int pageSize,
         string? search);
+
+    Task<(List<EmailJob> Items, int TotalNumber)> GetAdminPagedAsync(
+        int pageNumber,
+        int pageSize,
+        string? search);
+
 }
