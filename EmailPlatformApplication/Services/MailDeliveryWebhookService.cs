@@ -123,7 +123,7 @@ public class MailDeliveryWebhookService
         var webhookEvent = new EmailWebhookEvent
         {
             Provider = "maildelivery",
-            EventId = tag,
+            EventId = Guid.NewGuid().ToString(),
             EmailJobId = emailJob.Id,
             EventType = request.Type,
             ReceivedAt = DateTimeOffset.UtcNow
