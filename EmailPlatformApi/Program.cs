@@ -52,6 +52,10 @@ app.UseHangfireDashboard(
 HangfireJobScheduler.RegisterRecurringJobs();
 BackgroundJob.Enqueue<IEmailRetryWorker>(
     worker => worker.ProcessAsync(CancellationToken.None));
+
+// CORS
+app.UseCors("Frontend");
+
 // Dynamic SMTP test endpoint
 app.MapGet("/smtp-test", async (IOptions<SmtpOptions> smtpOptions) =>
 {
