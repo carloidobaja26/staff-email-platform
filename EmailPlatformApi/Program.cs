@@ -31,7 +31,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:3000",
-                "https://staff-web-production-798d.up.railway.app"
+                "https://staff-email-frontend-production.up.railway.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
