@@ -24,6 +24,20 @@ builder.Services.AddScoped<IEmailSubmissionService, EmailSubmissionService>();
 builder.Services.AddHostedService<SmtpServerHostedService>();
 builder.Services.AddScoped<IEmailRetryWorker, EmailRetryWorker>();
 builder.Services.AddScoped<IEmailJobProcessor, EmailJobProcessor>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:3000",
+                "https://staff-web-production-798d.up.railway.app"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 app.UseSwagger();
