@@ -20,7 +20,8 @@ public class StalwartWebhookController : ControllerBase
     public IActionResult Receive([FromBody] JsonElement payload)
     {
         var json = payload.GetRawText();
-
+        _logger.LogInformation(
+            "Stalwart webhook trigger");
         _logger.LogInformation(
             "Stalwart webhook received. Payload: {Payload}",
             json);
