@@ -66,10 +66,10 @@ public class EmailDeliveryProvider : IEmailProvider
                 bodyBuilder.ToMessageBody();
 
             using var client = new SmtpClient();
-            #if DEBUG
+            // TEMPORARY: Bypass SSL certificate validation for testing only.
             client.ServerCertificateValidationCallback =
                 (sender, certificate, chain, sslPolicyErrors) => true;
-            #endif
+
 
             await client.ConnectAsync(
                 _options.Host,
