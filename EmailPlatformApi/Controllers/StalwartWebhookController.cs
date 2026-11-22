@@ -23,7 +23,7 @@ public class StalwartWebhookController : ControllerBase
         _logger.LogInformation(
             "Stalwart webhook trigger");
         _logger.LogInformation(
-            "Stalwart webhook received. Payload: {Payload}",
+            "Stalwart webhook received Payload {Payload}",
             json);
 
         return Ok(new
