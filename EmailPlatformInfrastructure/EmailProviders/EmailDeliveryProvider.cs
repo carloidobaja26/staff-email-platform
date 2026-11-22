@@ -66,11 +66,15 @@ public class EmailDeliveryProvider : IEmailProvider
                 bodyBuilder.ToMessageBody();
 
             using var client = new SmtpClient();
+            #if DEBUG
+            client.ServerCertificateValidationCallback =
+                (sender, certificate, chain, sslPolicyErrors) => true;
+            #endif
 
             await client.ConnectAsync(
                 _options.Host,
                 _options.Port,
-                SecureSocketOptions.StartTls,
+                SecureSocketOptions.SslOnConnect,
                 cancellationToken);
 
             await client.AuthenticateAsync(
